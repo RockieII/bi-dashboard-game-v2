@@ -8,10 +8,17 @@
 </head>
 <body>
   <div id="app">
-    <header id="kpi-bar"></header>
+    <div id="top-bar">
+      <span id="top-bar-title">BI Dashboard <span id="version-badge">v2</span></span>
+      <div id="top-bar-actions">
+        <button id="log-btn" title="Activity Log">📋 Log</button>
+        <button id="status-btn" title="Status Report">📊 Status</button>
+        <button id="settings-btn" title="Settings">⚙ Settings</button>
+      </div>
+    </div>
+    <div id="kpi-bar"></div>
     <div id="content">
-      <main id="main-panel"></main>
-      <aside id="shop-sidebar"></aside>
+      <div id="dashboard"></div>
     </div>
   </div>
   <div id="toast-container"></div>
