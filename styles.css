@@ -149,15 +149,16 @@ html, body {
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  container-type: size;
 }
 
 /* === DASHBOARD GRID === */
 #dashboard {
   display: grid;
   grid-template-columns: 3fr 2fr 5fr 5fr 3fr;
-  grid-template-rows: 55% 45%;
-  gap: 2vh;
-  padding: 2vh;
+  grid-template-rows: 55fr 45fr;
+  gap: 2cqh;
+  padding: 2cqh;
   height: 100%;
   box-sizing: border-box;
 }
@@ -227,10 +228,10 @@ html, body {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
-  padding: 1vh;
+  padding: 1cqh;
   display: flex;
   flex-direction: column;
-  gap: 1vh;
+  gap: 1cqh;
 }
 
 /* === PANEL SUB-CONTAINER === */
