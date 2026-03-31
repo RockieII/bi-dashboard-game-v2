@@ -351,6 +351,9 @@ let state = defaultState();
 let sparklineData = [];
 let activityLog = [];
 let starvationFlags = new Array(PRODUCERS.length).fill(false);
+let totalClicks = 0;
+let totalClickDP = 0;
+let sessionStart = Date.now();
 
 // ═══ SAVE / LOAD ═══
 
@@ -554,6 +557,8 @@ function handleClick(e) {
   const power = clickPower();
   state.dataPoints += power;
   state.lifetimeDP += power;
+  totalClicks++;
+  totalClickDP += power;
 
   // Bounce animation
   const el = document.getElementById('click-target');
@@ -1032,9 +1037,13 @@ function buildKPIBar() {
       <div class="kpi-value gold" id="kpi-rp-value">0 RP</div>
       <div class="kpi-sub" id="kpi-rp-sub">0 resets</div>
     </div>
-    <button id="settings-btn" title="Settings">⚙</button>
+    <div id="kpi-actions">
+      <button id="status-btn" title="Status Report">📋</button>
+      <button id="settings-btn" title="Settings">⚙</button>
+    </div>
   `;
   document.getElementById('settings-btn').addEventListener('click', openSettings);
+  document.getElementById('status-btn').addEventListener('click', openStatus);
 }
 
 function buildMainPanel() {
@@ -1219,6 +1228,152 @@ function buildPrestigePanel() {
   }
 }
 
+// ═══ STATUS MODAL ═══
+
+function fmtDuration(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}h ${m}m ${sec}s`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+
+function buildStatusModal() {
+  const existing = document.getElementById('status-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'status-overlay';
+  overlay.style.display = 'none';
+  overlay.innerHTML = `
+    <div id="status-modal">
+      <div id="status-header">
+        <span id="status-title">Status Report</span>
+        <button id="status-close">✕</button>
+      </div>
+      <div id="status-body"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#status-close').addEventListener('click', closeStatus);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeStatus(); });
+}
+
+function openStatus() {
+  renderStatusBody();
+  document.getElementById('status-overlay').style.display = 'flex';
+}
+
+function closeStatus() {
+  document.getElementById('status-overlay').style.display = 'none';
+}
+
+function renderStatusBody() {
+  const body = document.getElementById('status-body');
+  if (!body) return;
+
+  const sessionMs = Date.now() - sessionStart;
+  const dpRate = calcTotalProduction('dataPoints');
+  const insRate = calcTotalProduction('insights');
+  const revRate = calcTotalProduction('revenue');
+
+  // Per-tier DP breakdown
+  const t1Rate = PRODUCERS.filter(p => p.tier === 1).reduce((s, p) => s + producerEffectiveRate(p), 0);
+  const t2Rate = PRODUCERS.filter(p => p.tier === 2).reduce((s, p) => s + producerEffectiveRate(p), 0);
+  const t3Rate = PRODUCERS.filter(p => p.tier === 3 && (!p.hidden || state.rpUpgrades[2])).reduce((s, p) => s + producerEffectiveRate(p), 0);
+
+  // Total producers owned
+  const totalOwned = state.owned.reduce((s, n) => s + n, 0);
+
+  // Upgrades purchased
+  const upgBought = state.upgrades.filter(Boolean).length;
+  const rpUpgBought = state.rpUpgrades.filter(Boolean).length;
+
+  // Next prestige
+  const rpGain = calcRPGain();
+
+  // Milestone progress
+  const milestonesReached = MILESTONES.filter(m => milestonesFired.has(m.id)).length;
+
+  // Producer breakdown rows
+  const producerRows = PRODUCERS
+    .filter(p => (!p.hidden || state.rpUpgrades[2]) && state.owned[p.id] > 0)
+    .map(p => `
+      <div class="status-row">
+        <span class="status-row-label">${p.emoji} ${p.name}</span>
+        <span class="status-row-value">${state.owned[p.id]} owned · ${fmtDec(producerEffectiveRate(p))}/s</span>
+      </div>
+    `).join('');
+
+  // Purchased upgrades list
+  const boughtUpgrades = UPGRADES
+    .filter((u, i) => state.upgrades[i])
+    .map(u => `<span class="status-upgrade-pill">${u.name}</span>`)
+    .join('');
+
+  body.innerHTML = `
+    <div class="status-section">
+      <div class="status-section-title">Session</div>
+      <div class="status-row"><span class="status-row-label">Session time</span><span class="status-row-value">${fmtDuration(sessionMs)}</span></div>
+      <div class="status-row"><span class="status-row-label">Fiscal year resets</span><span class="status-row-value">${state.prestigeCount}</span></div>
+      <div class="status-row"><span class="status-row-label">Milestones reached</span><span class="status-row-value">${milestonesReached} / ${MILESTONES.length}</span></div>
+    </div>
+
+    <div class="status-section">
+      <div class="status-section-title">All-Time Production</div>
+      <div class="status-row"><span class="status-row-label">Data Points generated</span><span class="status-row-value accent">${fmt(state.lifetimeDP)}</span></div>
+      <div class="status-row"><span class="status-row-label">Insights generated</span><span class="status-row-value teal">${fmt(state.lifetimeInsights)}</span></div>
+      <div class="status-row"><span class="status-row-label">Revenue generated</span><span class="status-row-value">${fmt(state.lifetimeRevenue)}</span></div>
+    </div>
+
+    <div class="status-section">
+      <div class="status-section-title">Current Rates</div>
+      <div class="status-row"><span class="status-row-label">Data Points / s</span><span class="status-row-value accent">${fmtDec(dpRate)}</span></div>
+      <div class="status-row"><span class="status-row-label">  ↳ from Tier 1 producers</span><span class="status-row-value">${fmtDec(t1Rate)}/s</span></div>
+      <div class="status-row"><span class="status-row-label">Insights / s</span><span class="status-row-value teal">${fmtDec(insRate)}</span></div>
+      <div class="status-row"><span class="status-row-label">  ↳ from Tier 2 producers</span><span class="status-row-value">${fmtDec(t2Rate)}/s</span></div>
+      <div class="status-row"><span class="status-row-label">Revenue / s</span><span class="status-row-value">${fmtDec(revRate)}</span></div>
+      <div class="status-row"><span class="status-row-label">  ↳ from Tier 3 producers</span><span class="status-row-value">${fmtDec(t3Rate)}/s</span></div>
+    </div>
+
+    <div class="status-section">
+      <div class="status-section-title">Click Stats</div>
+      <div class="status-row"><span class="status-row-label">Total clicks this session</span><span class="status-row-value">${totalClicks.toLocaleString()}</span></div>
+      <div class="status-row"><span class="status-row-label">DP earned from clicks</span><span class="status-row-value accent">${fmt(totalClickDP)}</span></div>
+      <div class="status-row"><span class="status-row-label">Current click power</span><span class="status-row-value">+${fmt(clickPower())} DP</span></div>
+    </div>
+
+    <div class="status-section">
+      <div class="status-section-title">Workforce — ${totalOwned} total</div>
+      ${producerRows || '<div class="status-empty">No producers hired yet.</div>'}
+    </div>
+
+    <div class="status-section">
+      <div class="status-section-title">Upgrades — ${upgBought}/${UPGRADES.length} purchased · ${rpUpgBought}/${RP_UPGRADES.length} RP</div>
+      <div class="status-upgrade-pills">${boughtUpgrades || '<span class="status-empty">None purchased yet.</span>'}</div>
+    </div>
+
+    <div class="status-section">
+      <div class="status-section-title">Prestige</div>
+      <div class="status-row"><span class="status-row-label">Reputation Points</span><span class="status-row-value gold">${state.reputationPoints} RP</span></div>
+      <div class="status-row"><span class="status-row-label">Next reset would give</span><span class="status-row-value gold">${rpGain >= 5 ? '+' + rpGain + ' RP' : 'Not yet eligible'}</span></div>
+      <div class="status-row"><span class="status-row-label">Resets completed</span><span class="status-row-value">${state.prestigeCount}</span></div>
+    </div>
+
+    <div class="status-section">
+      <div class="status-section-title">Milestones</div>
+      ${MILESTONES.map(m => `
+        <div class="status-row milestone-row ${milestonesFired.has(m.id) ? 'done' : 'locked'}">
+          <span class="milestone-icon">${milestonesFired.has(m.id) ? '✓' : '○'}</span>
+          <span class="status-row-label">${m.msg}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
 // ═══ SETTINGS MODAL ═══
 
 function buildSettingsModal() {
@@ -1353,6 +1508,7 @@ function buildAll() {
   buildMainPanel();
   buildSidebar();
   buildSettingsModal();
+  buildStatusModal();
   renderKPI();
   renderProducers();
   renderUpgrades();
