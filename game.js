@@ -1000,20 +1000,19 @@ function buildDashboard() {
   dash.innerHTML = '';
 
   const panels = [
-    { id: 'panel-t1',          style: 'grid-column:1/3;grid-row:1',  unlock: 't1',      fn: buildT1Panel,          hint: '' },
-    { id: 'panel-click',       style: 'grid-column:3;grid-row:1',    unlock: 'click',   fn: buildClickPanel,       hint: '' },
-    { id: 'panel-quests',      style: 'grid-column:4;grid-row:1',    unlock: 'quests',  fn: buildQuestsPanel,      hint: 'Earn your first Contract' },
-    { id: 'panel-prestige',    style: 'grid-column:5;grid-row:1/3',  unlock: 'prestige',fn: buildPrestigeTreePanel,hint: 'Need ~5 RP from Revenue' },
-    { id: 'panel-wm-upgrades', style: 'grid-column:1;grid-row:2',    unlock: 'wm',      fn: buildWorldUpgradesPanel,hint: 'Reach 5,000 lifetime DP' },
-    { id: 'panel-wm-map',      style: 'grid-column:2/4;grid-row:2',  unlock: 'wm',      fn: buildWorldMapPanel,    hint: 'Reach 5,000 lifetime DP' },
-    { id: 'panel-t2',          style: 'grid-column:4;grid-row:2',    unlock: 't2',      fn: buildT2Panel,          hint: 'Earn 50 lifetime Insights' },
+    { id: 'panel-t1',          unlock: 't1',      fn: buildT1Panel,          hint: '' },
+    { id: 'panel-click',       unlock: 'click',   fn: buildClickPanel,       hint: '' },
+    { id: 'panel-quests',      unlock: 'quests',  fn: buildQuestsPanel,      hint: 'Earn your first Contract' },
+    { id: 'panel-prestige',    unlock: 'prestige',fn: buildPrestigeTreePanel,hint: 'Need ~5 RP from Revenue' },
+    { id: 'panel-wm-upgrades', unlock: 'wm',      fn: buildWorldUpgradesPanel,hint: 'Reach 5,000 lifetime DP' },
+    { id: 'panel-wm-map',      unlock: 'wm',      fn: buildWorldMapPanel,    hint: 'Reach 5,000 lifetime DP' },
+    { id: 'panel-t2',          unlock: 't2',      fn: buildT2Panel,          hint: 'Earn 50 lifetime Insights' },
   ];
 
   for (const p of panels) {
     const el = document.createElement('div');
     el.className = 'dash-panel';
     el.id = p.id;
-    el.style.cssText = p.style;
     dash.appendChild(el);
     if (panelsUnlocked.has(p.unlock)) {
       p.fn();
@@ -1040,7 +1039,6 @@ function buildT1Panel() {
 
   const t1Producers = PRODUCERS.filter(p => p.tier === 1);
   const t1UpgradeGroups = UPGRADE_GROUPS.filter(g => g.id === 'grp-t1');
-  const clickUpgradeGroups = UPGRADE_GROUPS.filter(g => g.id === 'grp-click');
 
   el.innerHTML = `
     <div class="panel-header">
@@ -1048,24 +1046,25 @@ function buildT1Panel() {
       <span class="panel-badge blue">Data Points</span>
     </div>
     <div class="panel-body" id="t1-body">
-      <div id="t1-prod-list"></div>
-      <div class="section-divider" id="t1-upg-header" style="display:none">T1 Upgrades</div>
-      <div id="t1-upg-list"></div>
-      <div class="section-divider" id="click-upg-header" style="display:none">Click Upgrades</div>
-      <div id="click-upg-list"></div>
+      <div class="panel-sub" id="t1-prod-sub">
+        <div class="section-divider">Producers</div>
+        <div id="t1-prod-list"></div>
+      </div>
+      <div class="panel-sub" id="t1-upg-sub" style="display:none">
+        <div class="section-divider">Upgrades</div>
+        <div id="t1-upg-list"></div>
+      </div>
     </div>
   `;
 
   // Producer rows
   const prodList = document.getElementById('t1-prod-list');
   for (const p of t1Producers) {
-    const row = makeProducerRow(p);
-    prodList.appendChild(row);
+    prodList.appendChild(makeProducerRow(p));
   }
 
   // Upgrade pills
   buildUpgradePillsInto('t1-upg-list', t1UpgradeGroups);
-  buildUpgradePillsInto('click-upg-list', clickUpgradeGroups);
 }
 
 function renderT1Panel() {
@@ -1073,14 +1072,10 @@ function renderT1Panel() {
   const t1 = PRODUCERS.filter(p => p.tier === 1);
   for (const p of t1) updateProducerRow(p);
   updateUpgradePills('t1-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-t1'));
-  updateUpgradePills('click-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-click'));
-  // Show upgrade headers if any are visible
+  // Show upgrades sub-container if any are visible
   const t1UpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-t1').ids.some(i => state.upgradeVisible[i]);
-  const clkUpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-click').ids.some(i => state.upgradeVisible[i]);
-  const t1Hdr = document.getElementById('t1-upg-header');
-  const clkHdr = document.getElementById('click-upg-header');
-  if (t1Hdr) t1Hdr.style.display = t1UpgVisible ? '' : 'none';
-  if (clkHdr) clkHdr.style.display = clkUpgVisible ? '' : 'none';
+  const upgSub = document.getElementById('t1-upg-sub');
+  if (upgSub) upgSub.style.display = t1UpgVisible ? '' : 'none';
 }
 
 // ═══ BUILD: T2 PANEL ═══
@@ -1095,14 +1090,17 @@ function buildT2Panel() {
       <span class="panel-badge teal">Insights & Revenue</span>
     </div>
     <div class="panel-body" id="t2-body">
-      <div class="section-divider">Tier 2 — Analytics</div>
-      <div id="t2-prod-list"></div>
-      <div class="section-divider">Tier 3 — Revenue</div>
-      <div id="t3-prod-list"></div>
-      <div class="section-divider" id="t2-upg-header" style="display:none">T2 Upgrades</div>
-      <div id="t2-upg-list"></div>
-      <div class="section-divider" id="t3-upg-header" style="display:none">T3 Upgrades</div>
-      <div id="t3-upg-list"></div>
+      <div class="panel-sub">
+        <div class="section-divider">Tier 2 — Analytics</div>
+        <div id="t2-prod-list"></div>
+        <div class="section-divider">Tier 3 — Revenue</div>
+        <div id="t3-prod-list"></div>
+      </div>
+      <div class="panel-sub" id="t2-upg-sub" style="display:none">
+        <div class="section-divider">Upgrades</div>
+        <div id="t2-upg-list"></div>
+        <div id="t3-upg-list"></div>
+      </div>
     </div>
   `;
 
@@ -1126,11 +1124,10 @@ function renderT2Panel() {
   for (const p of t23) updateProducerRow(p);
   updateUpgradePills('t2-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-t2'));
   updateUpgradePills('t3-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-t3'));
-  const t2V = UPGRADE_GROUPS.find(g => g.id === 'grp-t2').ids.some(i => state.upgradeVisible[i]);
-  const t3V = UPGRADE_GROUPS.find(g => g.id === 'grp-t3').ids.some(i => state.upgradeVisible[i]);
-  const h2 = document.getElementById('t2-upg-header'), h3 = document.getElementById('t3-upg-header');
-  if (h2) h2.style.display = t2V ? '' : 'none';
-  if (h3) h3.style.display = t3V ? '' : 'none';
+  const anyUpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-t2').ids.some(i => state.upgradeVisible[i])
+    || UPGRADE_GROUPS.find(g => g.id === 'grp-t3').ids.some(i => state.upgradeVisible[i]);
+  const upgSub = document.getElementById('t2-upg-sub');
+  if (upgSub) upgSub.style.display = anyUpgVisible ? '' : 'none';
 }
 
 // ═══ PRODUCER ROW HELPERS ═══
@@ -1257,30 +1254,44 @@ function updateUpgradePills(containerId, grp) {
 function buildClickPanel() {
   const el = document.getElementById('panel-click');
   if (!el) return;
+  const clickUpgradeGroups = UPGRADE_GROUPS.filter(g => g.id === 'grp-click');
+
   el.innerHTML = `
     <div class="panel-header">
       <span class="panel-title">Data Ingestion</span>
       <span class="panel-badge blue">Click</span>
     </div>
     <div class="panel-body">
-      <div id="click-target">
-        <div id="click-label">Click to Collect Data Points</div>
-        <div id="click-value">0</div>
-        <div id="click-rate">0 DP/s · Click: +1</div>
+      <div class="panel-sub">
+        <div id="click-target">
+          <div id="click-label">Click to Collect Data Points</div>
+          <div id="click-value">0</div>
+          <div id="click-rate">0 DP/s · Click: +1</div>
+        </div>
       </div>
-      <div id="sparkline-wrap">
-        <div id="sparkline-title">Data Points — Live Feed</div>
-        <canvas id="sparkline"></canvas>
+      <div class="panel-sub">
+        <div id="sparkline-wrap">
+          <div id="sparkline-title">Data Points — Live Feed</div>
+          <canvas id="sparkline"></canvas>
+        </div>
+      </div>
+      <div class="panel-sub" id="click-upg-sub" style="display:none">
+        <div class="section-divider">Click Upgrades</div>
+        <div id="click-upg-list"></div>
       </div>
     </div>
   `;
   document.getElementById('click-target').addEventListener('click', handleClick);
+  buildUpgradePillsInto('click-upg-list', clickUpgradeGroups);
   resizeSparkline();
   window.addEventListener('resize', resizeSparkline);
 }
 
 function renderClickPanel() {
-  // click-value and click-rate are updated via renderKPI
+  updateUpgradePills('click-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-click'));
+  const clkUpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-click').ids.some(i => state.upgradeVisible[i]);
+  const upgSub = document.getElementById('click-upg-sub');
+  if (upgSub) upgSub.style.display = clkUpgVisible ? '' : 'none';
 }
 
 // ═══ BUILD: WORLD MAP PANEL ═══
