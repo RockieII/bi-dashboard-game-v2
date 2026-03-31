@@ -3,6 +3,7 @@
 const TICK_MS = 250;
 const DT = TICK_MS / 1000; // seconds per tick
 const SAVE_KEY = 'bi-dashboard-save';
+const SETTINGS_KEY = 'bi-dashboard-settings';
 const SPARKLINE_MAX = 60;
 const SPARKLINE_INTERVAL_TICKS = 15; // push every 15 ticks (~3.75s)
 const AUTOSAVE_TICKS = 120; // every 30s
@@ -238,6 +239,47 @@ const UPGRADES = [
     cost: { resource: 'revenue', amount: 5000 },
     effect: { type: 'allMultiplier', multiplier: 3 },
   },
+  // Click power upgrades
+  {
+    id: 17, name: 'Touch Typing',
+    desc: 'Click power 2×.',
+    flavor: 'Your WPM just hit 120. The data flows freely.',
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 10 },
+    cost: { resource: 'dataPoints', amount: 75 },
+    effect: { type: 'clickMultiplier', multiplier: 2 },
+  },
+  {
+    id: 18, name: 'Keyboard Shortcuts',
+    desc: 'Click power 2×.',
+    flavor: "Ctrl+C, Ctrl+V — the analyst's two best friends.",
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 500 },
+    cost: { resource: 'dataPoints', amount: 1500 },
+    effect: { type: 'clickMultiplier', multiplier: 2 },
+  },
+  {
+    id: 19, name: 'Macro Recorder',
+    desc: 'Click power 3×.',
+    flavor: 'One button. One macro. Infinite leverage.',
+    unlock: { type: 'owned', producerId: 1, count: 5 },
+    cost: { resource: 'dataPoints', amount: 12000 },
+    effect: { type: 'clickMultiplier', multiplier: 3 },
+  },
+  {
+    id: 20, name: 'RPA Bot',
+    desc: 'Click power 5×.',
+    flavor: 'Robotic Process Automation handles the clicking itself.',
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 50000 },
+    cost: { resource: 'dataPoints', amount: 40000 },
+    effect: { type: 'clickMultiplier', multiplier: 5 },
+  },
+  {
+    id: 21, name: 'One-Click Reports',
+    desc: 'Click power 4×.',
+    flavor: 'A single click generates a full board-ready report.',
+    unlock: { type: 'owned', producerId: 4, count: 5 },
+    cost: { resource: 'dataPoints', amount: 80000 },
+    effect: { type: 'clickMultiplier', multiplier: 4 },
+  },
 ];
 
 const RP_UPGRADES = [
@@ -257,6 +299,32 @@ const RP_UPGRADES = [
     cost: 100,
   },
 ];
+
+// ═══ SETTINGS ═══
+
+let settings = {
+  numberFormat: 'general', // general | scientific | engineering | letters | full
+  theme: 'dark',           // dark | light
+  accent: 'blue',          // blue | purple | teal | orange | pink
+};
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) settings = { ...settings, ...JSON.parse(raw) };
+  } catch (e) {}
+}
+
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function applyTheme() {
+  document.body.classList.remove('theme-light', 'theme-dark');
+  document.body.classList.add(settings.theme === 'light' ? 'theme-light' : 'theme-dark');
+  document.body.classList.remove('accent-blue', 'accent-purple', 'accent-teal', 'accent-orange', 'accent-pink');
+  document.body.classList.add(`accent-${settings.accent}`);
+}
 
 // ═══ GAME STATE ═══
 
@@ -631,6 +699,19 @@ function checkMilestones() {
 // ═══ NUMBER FORMATTING ═══
 
 function fmt(n) {
+  if (!isFinite(n) || isNaN(n)) return '0';
+  if (n < 0) return '-' + fmt(-n);
+  switch (settings.numberFormat) {
+    case 'scientific':   return fmtScientific(n);
+    case 'engineering':  return fmtEngineering(n);
+    case 'letters':      return fmtLetters(n);
+    case 'full':         return fmtFull(n);
+    default:             return fmtGeneral(n);
+  }
+}
+
+function fmtGeneral(n) {
+  if (n >= 1e18) return (n / 1e18).toFixed(2) + 'Qi';
   if (n >= 1e15) return (n / 1e15).toFixed(2) + 'Qa';
   if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
   if (n >= 1e9)  return (n / 1e9).toFixed(2)  + 'B';
@@ -639,8 +720,35 @@ function fmt(n) {
   return Math.floor(n).toString();
 }
 
+function fmtScientific(n) {
+  if (n < 1000) return Math.floor(n).toString();
+  return n.toExponential(2).replace('e+', 'e');
+}
+
+function fmtEngineering(n) {
+  if (n < 1000) return Math.floor(n).toString();
+  const exp = Math.floor(Math.log10(Math.abs(n)));
+  const engExp = Math.floor(exp / 3) * 3;
+  const mantissa = n / Math.pow(10, engExp);
+  return mantissa.toFixed(2) + 'e' + engExp;
+}
+
+function fmtLetters(n) {
+  const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+  let val = n, idx = 0;
+  while (val >= 1000 && idx < suffixes.length - 1) { val /= 1000; idx++; }
+  if (idx === 0) return Math.floor(n).toString();
+  return val.toFixed(2) + suffixes[idx];
+}
+
+function fmtFull(n) {
+  if (n >= 1e15) return fmtScientific(n);
+  return Math.floor(n).toLocaleString();
+}
+
 function fmtDec(n) {
   if (n >= 1000) return fmt(n);
+  if (n >= 100) return n.toFixed(1);
   return n.toFixed(2);
 }
 
@@ -895,7 +1003,9 @@ function buildKPIBar() {
       <div class="kpi-value gold" id="kpi-rp-value">0 RP</div>
       <div class="kpi-sub" id="kpi-rp-sub">0 resets</div>
     </div>
+    <button id="settings-btn" title="Settings">⚙</button>
   `;
+  document.getElementById('settings-btn').addEventListener('click', openSettings);
 }
 
 function buildMainPanel() {
@@ -1046,6 +1156,126 @@ function buildPrestigePanel() {
   }
 }
 
+// ═══ SETTINGS MODAL ═══
+
+function buildSettingsModal() {
+  const existing = document.getElementById('settings-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'settings-overlay';
+  overlay.style.display = 'none';
+  overlay.innerHTML = `
+    <div id="settings-modal">
+      <div id="settings-header">
+        <span id="settings-title">Settings</span>
+        <button id="settings-close">✕</button>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Number Format</div>
+        <div class="settings-options" id="format-options">
+          <label class="settings-option"><input type="radio" name="numformat" value="general"><span>General <em>1.23K / 4.56M</em></span></label>
+          <label class="settings-option"><input type="radio" name="numformat" value="scientific"><span>Scientific <em>1.23e3 / 4.56e6</em></span></label>
+          <label class="settings-option"><input type="radio" name="numformat" value="engineering"><span>Engineering <em>1.23e3 / 4.56e6</em></span></label>
+          <label class="settings-option"><input type="radio" name="numformat" value="letters"><span>Letters <em>1.23K / Qa / Qi / Sx…</em></span></label>
+          <label class="settings-option"><input type="radio" name="numformat" value="full"><span>Full <em>1,234 / 4,567,890</em></span></label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Theme</div>
+        <div class="settings-btn-row">
+          <button class="settings-theme-btn" data-theme="dark">Dark</button>
+          <button class="settings-theme-btn" data-theme="light">Light</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Accent Color</div>
+        <div class="settings-accent-row">
+          <button class="accent-swatch" data-accent="blue"   style="--swatch:#1f6feb" title="Blue"></button>
+          <button class="accent-swatch" data-accent="purple" style="--swatch:#8b5cf6" title="Purple"></button>
+          <button class="accent-swatch" data-accent="teal"   style="--swatch:#0891b2" title="Teal"></button>
+          <button class="accent-swatch" data-accent="orange" style="--swatch:#ea580c" title="Orange"></button>
+          <button class="accent-swatch" data-accent="pink"   style="--swatch:#db2777" title="Pink"></button>
+        </div>
+      </div>
+
+      <div class="settings-section settings-danger">
+        <div class="settings-section-title">Danger Zone</div>
+        <p class="settings-danger-text">Permanently deletes all game progress. Settings are kept.</p>
+        <button id="wipe-btn">Wipe All Data & Start Over</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Close button
+  overlay.querySelector('#settings-close').addEventListener('click', closeSettings);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSettings(); });
+
+  // Number format radios
+  overlay.querySelectorAll('input[name="numformat"]').forEach(radio => {
+    if (radio.value === settings.numberFormat) radio.checked = true;
+    radio.addEventListener('change', () => {
+      settings.numberFormat = radio.value;
+      saveSettings();
+    });
+  });
+
+  // Theme buttons
+  overlay.querySelectorAll('.settings-theme-btn').forEach(btn => {
+    if (btn.dataset.theme === settings.theme) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      settings.theme = btn.dataset.theme;
+      saveSettings();
+      applyTheme();
+      overlay.querySelectorAll('.settings-theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === settings.theme));
+    });
+  });
+
+  // Accent swatches
+  overlay.querySelectorAll('.accent-swatch').forEach(btn => {
+    if (btn.dataset.accent === settings.accent) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      settings.accent = btn.dataset.accent;
+      saveSettings();
+      applyTheme();
+      overlay.querySelectorAll('.accent-swatch').forEach(b => b.classList.toggle('active', b.dataset.accent === settings.accent));
+    });
+  });
+
+  // Wipe button
+  overlay.querySelector('#wipe-btn').addEventListener('click', () => {
+    if (confirm('Wipe ALL game data and start over? This cannot be undone.')) {
+      wipeData();
+      closeSettings();
+    }
+  });
+}
+
+function openSettings() {
+  document.getElementById('settings-overlay').style.display = 'flex';
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay').style.display = 'none';
+}
+
+function wipeData() {
+  localStorage.removeItem(SAVE_KEY);
+  state = defaultState();
+  sparklineData = [];
+  activityLog = [];
+  starvationFlags = new Array(PRODUCERS.length).fill(false);
+  milestonesFired.clear();
+  gameStartTime = Date.now();
+  addLog('Save wiped. Fresh start.', 'info');
+  buildAll();
+  showToast('All data wiped. Starting over.', 'info');
+}
+
 // ═══ HELPERS ═══
 
 function setText(id, text) {
@@ -1059,6 +1289,7 @@ function buildAll() {
   buildKPIBar();
   buildMainPanel();
   buildSidebar();
+  buildSettingsModal();
   renderKPI();
   renderProducers();
   renderUpgrades();
@@ -1068,6 +1299,8 @@ function buildAll() {
 
 // ═══ INIT ═══
 
+loadSettings();
+applyTheme();
 loadGame();
 gameStartTime = Date.now();
 addLog('You opened a new spreadsheet. Time to build a data empire.', 'info');
