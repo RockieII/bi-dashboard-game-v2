@@ -897,8 +897,29 @@ function renderProducers() {
     if (badge) badge.textContent = state.owned[p.id];
 
     const starvEl = card.querySelector('.starvation-badge');
-    if (starvEl) {
-      starvEl.style.display = starvationFlags[p.id] ? 'inline-block' : 'none';
+    if (starvEl) starvEl.style.display = starvationFlags[p.id] ? 'inline-block' : 'none';
+
+    // Production stats
+    const statsEl = document.getElementById(`pstat-${p.id}`);
+    if (statsEl) {
+      const owned = state.owned[p.id];
+      if (owned === 0) {
+        statsEl.innerHTML = '';
+      } else {
+        const totalRate = producerEffectiveRate(p);
+        const perUnit = totalRate / owned;
+        const typeTotal = calcTotalProduction(p.produces);
+        const pct = typeTotal > 0 ? (totalRate / typeTotal * 100) : 0;
+        const upgradeBoost = p.baseProduction > 0 ? (perUnit / p.baseProduction) : 1;
+        const boostLabel = upgradeBoost > 1.005 ? ` <span class="stat-boost">(×${upgradeBoost.toFixed(1)} upgrades)</span>` : '';
+        statsEl.innerHTML = `
+          <div class="pstat-row">
+            <span class="pstat-item">Per unit: <b>${fmtDec(perUnit)}/s</b>${boostLabel}</span>
+            <span class="pstat-item">Total: <b class="pstat-total">${fmtDec(totalRate)}/s</b></span>
+            <span class="pstat-item pstat-pct">${pct.toFixed(1)}% of ${resourceLabel(p.produces)}</span>
+          </div>
+        `;
+      }
     }
   }
 }
@@ -937,6 +958,14 @@ function renderUpgrades() {
 
     const check = card.querySelector('.checkmark');
     if (check) check.style.display = purchased ? 'inline' : 'none';
+  }
+
+  // Show/hide section headers based on whether any card in group is visible
+  for (const grp of UPGRADE_GROUPS) {
+    const header = document.getElementById(grp.id);
+    if (!header) continue;
+    const anyVisible = grp.ids.some(i => state.upgradeVisible[i]);
+    header.style.display = anyVisible ? '' : 'none';
   }
 }
 
@@ -1060,11 +1089,22 @@ function buildSidebar() {
   buildPrestigePanel();
 }
 
+const TIER_LABELS = { 1: 'Tier 1', 2: 'Tier 2', 3: 'Tier 3' };
+
 function buildProducerCards() {
   const container = document.getElementById('tab-producers');
   container.innerHTML = '';
+  let lastTier = 0;
   for (const p of PRODUCERS) {
     if (p.hidden && !state.rpUpgrades[2]) continue;
+    // Tier section header
+    if (p.tier !== lastTier) {
+      lastTier = p.tier;
+      const header = document.createElement('div');
+      header.className = `producer-tier-header tier${p.tier}`;
+      header.textContent = TIER_LABELS[p.tier];
+      container.appendChild(header);
+    }
     const resource = p.costResource || 'dataPoints';
     const cost = producerCost(p);
     const canAfford = state[resource] >= cost;
@@ -1080,39 +1120,62 @@ function buildProducerCards() {
       <div class="producer-desc">${p.desc}</div>
       <div class="producer-footer">
         <span class="producer-cost ${canAfford ? 'affordable' : 'cant-afford'}">${fmt(cost)} ${resourceLabel(resource)}</span>
-        <span class="producer-rate">${fmtDec(p.baseProduction)} ${resourceLabel(p.produces)}/s</span>
+        <span class="producer-rate">${fmtDec(p.baseProduction)} ${resourceLabel(p.produces)}/s base</span>
       </div>
+      <div class="producer-stats" id="pstat-${p.id}"></div>
     `;
     card.addEventListener('click', () => buyProducer(p.id));
     container.appendChild(card);
   }
 }
 
+const UPGRADE_GROUPS = [
+  { id: 'grp-t1',    label: 'Tier 1 — Data Collection', tag: 'T1', css: 'tag-tier1', ids: [0,1,2,3,4,5,6,7,8] },
+  { id: 'grp-t2',    label: 'Tier 2 — Analytics',       tag: 'T2', css: 'tag-tier2', ids: [9,10,11,12,13] },
+  { id: 'grp-t3',    label: 'Tier 3 — Revenue',         tag: 'T3', css: 'tag-tier3', ids: [14,15,16] },
+  { id: 'grp-click', label: 'Click Power',               tag: 'Click', css: 'tag-click', ids: [17,18,19,20,21] },
+];
+
 function buildUpgradeCards() {
   const container = document.getElementById('tab-upgrades');
   container.innerHTML = '';
-  for (let i = 0; i < UPGRADES.length; i++) {
-    const u = UPGRADES[i];
-    const purchased = state.upgrades[i];
-    const resource = u.cost.resource;
-    const canAfford = !purchased && state[resource] >= u.cost.amount;
 
-    const card = document.createElement('div');
-    card.className = `upgrade-card${purchased ? ' purchased' : (!canAfford ? ' unaffordable' : '')}`;
-    card.id = `upgrade-card-${i}`;
-    card.style.display = state.upgradeVisible[i] ? '' : 'none';
-    card.innerHTML = `
-      <div class="upgrade-header">
-        <div class="upgrade-name">${u.name}</div>
-        <span class="checkmark" style="display:${purchased ? 'inline' : 'none'}">✓</span>
-      </div>
-      <div class="upgrade-effect">${u.desc}</div>
-      <div class="upgrade-cost ${purchased ? '' : (canAfford ? 'affordable' : 'cant-afford')}">
-        ${purchased ? 'Purchased' : `${fmt(u.cost.amount)} ${resourceLabel(resource)}`}
-      </div>
-    `;
-    card.addEventListener('click', () => buyUpgrade(i));
-    container.appendChild(card);
+  for (const grp of UPGRADE_GROUPS) {
+    // Section header — hidden until at least one card in group unlocks
+    const header = document.createElement('div');
+    header.className = 'upgrade-section-header';
+    header.id = grp.id;
+    header.style.display = 'none';
+    header.innerHTML = `<span class="upg-tag ${grp.css}">${grp.tag}</span> ${grp.label}`;
+    container.appendChild(header);
+
+    for (const i of grp.ids) {
+      const u = UPGRADES[i];
+      const purchased = state.upgrades[i];
+      const resource = u.cost.resource;
+      const canAfford = !purchased && state[resource] >= u.cost.amount;
+
+      const card = document.createElement('div');
+      card.className = `upgrade-card${purchased ? ' purchased' : (!canAfford ? ' unaffordable' : '')}`;
+      card.id = `upgrade-card-${i}`;
+      card.dataset.group = grp.id;
+      card.style.display = state.upgradeVisible[i] ? '' : 'none';
+      card.innerHTML = `
+        <div class="upgrade-header">
+          <div class="upgrade-name">
+            <span class="upg-tag ${grp.css}">${grp.tag}</span>
+            ${u.name}
+          </div>
+          <span class="checkmark" style="display:${purchased ? 'inline' : 'none'}">✓</span>
+        </div>
+        <div class="upgrade-effect">${u.desc}</div>
+        <div class="upgrade-cost ${purchased ? '' : (canAfford ? 'affordable' : 'cant-afford')}">
+          ${purchased ? 'Purchased' : `${fmt(u.cost.amount)} ${resourceLabel(resource)}`}
+        </div>
+      `;
+      card.addEventListener('click', () => buyUpgrade(i));
+      container.appendChild(card);
+    }
   }
 }
 

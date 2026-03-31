@@ -608,6 +608,83 @@ html, body {
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
+/* === PRODUCER TIER HEADERS === */
+.producer-tier-header {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  padding: 8px 4px 4px;
+  margin-top: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.producer-tier-header.tier1 { color: var(--blue); }
+.producer-tier-header.tier2 { color: var(--teal); }
+.producer-tier-header.tier3 { color: var(--gold); }
+
+/* === PRODUCER STATS ROW === */
+.producer-stats {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.pstat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.pstat-item {
+  font-size: 0.67rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.pstat-item b { color: var(--text-primary); font-weight: 600; }
+.pstat-total  { color: var(--teal); }
+.stat-boost   { color: var(--amber); font-size: 0.65rem; }
+
+.pstat-pct {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* === UPGRADE SECTION HEADERS === */
+.upgrade-section-header {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 10px 4px 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* === UPGRADE TIER TAGS === */
+.upg-tag {
+  display: inline-block;
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.tag-tier1  { background: rgba(31,111,235,0.18); color: var(--blue); }
+.tag-tier2  { background: rgba(63,185,80,0.18);  color: var(--teal); }
+.tag-tier3  { background: rgba(227,179,65,0.18); color: var(--gold); }
+.tag-click  { background: rgba(248,81,73,0.18);  color: var(--red);  }
+
 /* === SETTINGS BUTTON === */
 #settings-btn {
   margin-left: auto;
