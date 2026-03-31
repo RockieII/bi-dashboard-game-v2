@@ -1038,6 +1038,7 @@ function buildKPIBar() {
       <div class="kpi-sub" id="kpi-rp-sub">0 resets</div>
     </div>
     <div id="kpi-actions">
+      <span id="version-badge">v2</span>
       <button id="status-btn" title="Status Report">📋</button>
       <button id="settings-btn" title="Settings">⚙</button>
     </div>

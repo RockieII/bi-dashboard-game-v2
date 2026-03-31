@@ -694,6 +694,19 @@ html, body {
   flex-shrink: 0;
 }
 
+#version-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  padding: 3px 7px;
+  align-self: center;
+  opacity: 0.75;
+}
+
 #settings-btn,
 #status-btn {
   background: transparent;
