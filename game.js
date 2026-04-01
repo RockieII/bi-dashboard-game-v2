@@ -191,6 +191,11 @@ const ACHIEVEMENTS = [
   { id: 32, name: 'Insight Engine',        desc: 'Reach ×1.1 DP multiplier',     check: () => state.insights >= 0.1,  reward: 'All producers +20%',  effect: { type: 'allMultiplier', multiplier: 1.2 } },
   { id: 33, name: 'Insight Overflow',      desc: 'Reach ×2.0 DP multiplier',     check: () => state.insights >= 1.0,  reward: 'All producers +50%',  effect: { type: 'allMultiplier', multiplier: 1.5 } },
   { id: 34, name: 'T2 Workforce',          desc: 'Own 50 T2 producers total',    check: () => PRODUCERS.filter(p=>p.tier===2).reduce((s,p)=>s+state.owned[p.id],0) >= 50, reward: 'All T2 +25%', effect: { type: 'allTierMultiplier', tier: 2, multiplier: 1.25 } },
+  // 150-tier: add producer production to click power
+  { id: 35, name: 'Excel Overlord',        desc: 'Own 150 Excel Analysts',       check: () => state.owned[0] >= 150, reward: '+100% Excel prod to click', effect: { type: 'clickPercentOfProducerProduction', producerId: 0 } },
+  { id: 36, name: 'SQL Mastermind',        desc: 'Own 150 SQL Developers',       check: () => state.owned[1] >= 150, reward: '+100% SQL prod to click',   effect: { type: 'clickPercentOfProducerProduction', producerId: 1 } },
+  { id: 37, name: 'Pipeline Titan',        desc: 'Own 150 ETL Pipelines',        check: () => state.owned[2] >= 150, reward: '+100% ETL prod to click',   effect: { type: 'clickPercentOfProducerProduction', producerId: 2 } },
+  { id: 38, name: 'Catalog Overlord',      desc: 'Own 150 Data Catalogs',        check: () => state.owned[3] >= 150, reward: '+100% Catalog prod to click', effect: { type: 'clickPercentOfProducerProduction', producerId: 3 } },
 ];
 
 const UPGRADE_GROUPS = [
@@ -551,6 +556,15 @@ function clickPower() {
   if (pctBonus > 0) {
     const dpRate = calcTotalProduction('dataPoints') * (1 + state.insights);
     power += dpRate * (pctBonus / 100);
+  }
+  // 150-tier achievements: add producer production to click
+  const insightsMult = 1 + state.insights;
+  for (const a of ACHIEVEMENTS) {
+    if (!state.achievements[a.id]) continue;
+    if (a.effect && a.effect.type === 'clickPercentOfProducerProduction') {
+      const p = PRODUCERS[a.effect.producerId];
+      if (p) power += producerEffectiveRate(p) * insightsMult;
+    }
   }
   return power;
 }

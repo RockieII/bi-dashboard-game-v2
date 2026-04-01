@@ -735,7 +735,7 @@ html, body {
   background: var(--panel-hover);
 }
 
-.wm-upg-card.purchased { opacity: 0.35; cursor: default; }
+.wm-upg-card.purchased { display: none; }
 .wm-upg-card.unaffordable { opacity: 0.5; cursor: default; }
 
 .wm-upg-name {
