@@ -21,11 +21,11 @@ const PRODUCERS = [
     baseCost: 12000,  costMult: 1.13, baseProduction: 20,   produces: 'dataPoints' },
   // Tier 2 — produce Insights/s (passive multiplier to DP, costs DP to buy)
   { id: 4, tier: 2, name: 'Power BI Dashboard', emoji: '📈', desc: 'Self-service analytics — passive DP multiplier.',
-    baseCost: 500000,   costMult: 1.15, baseProduction: 0.001, produces: 'insights' },
+    baseCost: 1000000,    costMult: 1.25, baseProduction: 0.001, produces: 'insights' },
   { id: 5, tier: 2, name: 'Data Warehouse',     emoji: '🏛️', desc: 'Centralised analytical store — stronger multiplier.',
-    baseCost: 5000000,  costMult: 1.15, baseProduction: 0.01,  produces: 'insights' },
+    baseCost: 15000000,   costMult: 1.25, baseProduction: 0.01,  produces: 'insights' },
   { id: 6, tier: 2, name: 'Data Lake',           emoji: '🌊', desc: 'Petabyte-scale storage — major multiplier.',
-    baseCost: 50000000, costMult: 1.15, baseProduction: 0.05,  produces: 'insights' },
+    baseCost: 200000000,  costMult: 1.25, baseProduction: 0.05,  produces: 'insights' },
 ];
 
 const UPGRADES = [
@@ -58,19 +58,41 @@ const UPGRADES = [
     cost: { resource: 'dataPoints', amount: 4000 },   effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
   { id: 9,  name: 'Star Schema Design',    desc: 'Power BI Dashboards 2× production.',
     unlock: { type: 'owned', producerId: 4, count: 1 },
-    cost: { resource: 'dataPoints', amount: 750000 },    effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 1500000 },    effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
   { id: 10, name: 'Row-Level Security',    desc: 'Power BI Dashboards 2× production.',
     unlock: { type: 'owned', producerId: 4, count: 5 },
-    cost: { resource: 'dataPoints', amount: 3000000 },   effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 8000000 },    effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
   { id: 11, name: 'Columnar Storage',      desc: 'Data Warehouses 2× production.',
     unlock: { type: 'owned', producerId: 5, count: 1 },
-    cost: { resource: 'dataPoints', amount: 8000000 },   effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 25000000 },   effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
   { id: 12, name: 'Partitioning Strategy', desc: 'Data Warehouses 2× production.',
     unlock: { type: 'owned', producerId: 5, count: 5 },
-    cost: { resource: 'dataPoints', amount: 30000000 },  effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 100000000 },  effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
   { id: 13, name: 'Delta Lake Format',     desc: 'Data Lakes 2× production.',
     unlock: { type: 'owned', producerId: 6, count: 1 },
-    cost: { resource: 'dataPoints', amount: 75000000 },  effect: { type: 'producerMultiplier', producerId: 6, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 300000000 },  effect: { type: 'producerMultiplier', producerId: 6, multiplier: 2 } },
+  // Additional T2 upgrades
+  { id: 26, name: 'Advanced DAX',          desc: 'Power BI Dashboards 3× production.',
+    unlock: { type: 'owned', producerId: 4, count: 15 },
+    cost: { resource: 'dataPoints', amount: 30000000 },   effect: { type: 'producerMultiplier', producerId: 4, multiplier: 3 } },
+  { id: 27, name: 'Snowflake Migration',   desc: 'Data Warehouses 3× production.',
+    unlock: { type: 'owned', producerId: 5, count: 10 },
+    cost: { resource: 'dataPoints', amount: 200000000 },  effect: { type: 'producerMultiplier', producerId: 5, multiplier: 3 } },
+  { id: 28, name: 'Lakehouse Architecture',desc: 'Data Lakes 3× production.',
+    unlock: { type: 'owned', producerId: 6, count: 5 },
+    cost: { resource: 'dataPoints', amount: 1000000000 }, effect: { type: 'producerMultiplier', producerId: 6, multiplier: 3 } },
+  { id: 29, name: 'DP Accelerator',        desc: 'All T1 producers 2× production.',
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 5000000 },
+    cost: { resource: 'dataPoints', amount: 5000000 },    effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
+  { id: 30, name: 'Contract Optimizer',    desc: 'Contracts rate ×2.',
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 20000000 },
+    cost: { resource: 'dataPoints', amount: 15000000 },   effect: { type: 'contractsMultiplier', multiplier: 2 } },
+  { id: 31, name: 'Insight Analytics',     desc: 'All T2 producers 2× production.',
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 100000000 },
+    cost: { resource: 'dataPoints', amount: 80000000 },   effect: { type: 'allTierMultiplier', tier: 2, multiplier: 2 } },
+  { id: 32, name: 'Enterprise Data Fabric',desc: 'All producers 2× production.',
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 500000000 },
+    cost: { resource: 'dataPoints', amount: 500000000 },  effect: { type: 'allMultiplier', multiplier: 2 } },
   { id: 14, name: 'Touch Typing',          desc: 'Click power 2×.',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 10 },
     cost: { resource: 'dataPoints', amount: 30 },     effect: { type: 'clickMultiplier', multiplier: 2 } },
@@ -138,11 +160,22 @@ const ACHIEVEMENTS = [
   { id: 22, name: 'First Conquest',        desc: 'Conquer 1 territory',          check: () => state.conquered.filter(Boolean).length >= 1, reward: 'All producers +10%', effect: { type: 'allMultiplier', multiplier: 1.1 } },
   { id: 23, name: 'Three Continents',      desc: 'Conquer 3 territories',        check: () => state.conquered.filter(Boolean).length >= 3, reward: 'All producers +20%', effect: { type: 'allMultiplier', multiplier: 1.2 } },
   { id: 24, name: 'World Conqueror',       desc: 'Conquer all 6 territories',    check: () => state.conquered.every(Boolean), reward: 'All producers +50%', effect: { type: 'allMultiplier', multiplier: 1.5 } },
+  // T2 achievements
+  { id: 25, name: 'Dashboard Starter',     desc: 'Own 5 Power BI Dashboards',    check: () => state.owned[4] >= 5,   reward: 'PBI Dashboards +25%',  effect: { type: 'producerMultiplier', producerId: 4, multiplier: 1.25 } },
+  { id: 26, name: 'Dashboard Pro',         desc: 'Own 25 Power BI Dashboards',   check: () => state.owned[4] >= 25,  reward: 'PBI Dashboards +100%', effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
+  { id: 27, name: 'Warehouse Founder',     desc: 'Own 5 Data Warehouses',        check: () => state.owned[5] >= 5,   reward: 'Data Warehouses +25%', effect: { type: 'producerMultiplier', producerId: 5, multiplier: 1.25 } },
+  { id: 28, name: 'Warehouse King',        desc: 'Own 25 Data Warehouses',       check: () => state.owned[5] >= 25,  reward: 'Data Warehouses +100%',effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
+  { id: 29, name: 'Lake Pioneer',          desc: 'Own 5 Data Lakes',             check: () => state.owned[6] >= 5,   reward: 'Data Lakes +25%',      effect: { type: 'producerMultiplier', producerId: 6, multiplier: 1.25 } },
+  { id: 30, name: 'Lake Titan',            desc: 'Own 25 Data Lakes',            check: () => state.owned[6] >= 25,  reward: 'Data Lakes +100%',     effect: { type: 'producerMultiplier', producerId: 6, multiplier: 2 } },
+  { id: 31, name: 'Insight Spark',         desc: 'Reach ×1.01 DP multiplier',    check: () => state.insights >= 0.01, reward: 'All producers +10%',  effect: { type: 'allMultiplier', multiplier: 1.1 } },
+  { id: 32, name: 'Insight Engine',        desc: 'Reach ×1.1 DP multiplier',     check: () => state.insights >= 0.1,  reward: 'All producers +20%',  effect: { type: 'allMultiplier', multiplier: 1.2 } },
+  { id: 33, name: 'Insight Overflow',      desc: 'Reach ×2.0 DP multiplier',     check: () => state.insights >= 1.0,  reward: 'All producers +50%',  effect: { type: 'allMultiplier', multiplier: 1.5 } },
+  { id: 34, name: 'T2 Workforce',          desc: 'Own 50 T2 producers total',    check: () => PRODUCERS.filter(p=>p.tier===2).reduce((s,p)=>s+state.owned[p.id],0) >= 50, reward: 'All T2 +25%', effect: { type: 'allTierMultiplier', tier: 2, multiplier: 1.25 } },
 ];
 
 const UPGRADE_GROUPS = [
   { id: 'grp-t1',    label: 'Tier 1',  tag: 'T1',    css: 'tag-tier1', ids: [0,1,2,3,4,5,6,7,8,19,20,21,22,23,24,25] },
-  { id: 'grp-t2',    label: 'Tier 2',  tag: 'T2',    css: 'tag-tier2', ids: [9,10,11,12,13] },
+  { id: 'grp-t2',    label: 'Tier 2',  tag: 'T2',    css: 'tag-tier2', ids: [9,10,11,12,13,26,27,28,29,30,31,32] },
   { id: 'grp-click', label: 'Click',   tag: 'Click', css: 'tag-click', ids: [14,15,16,17,18] },
 ];
 
@@ -168,6 +201,13 @@ const WORLD_UPGRADES = [
   { id: 3, name: 'Global Network',       cost: 250,  desc: 'DP production +50%',   type: 'dp',        mult: 1.5  },
   { id: 4, name: 'Data Standard',        cost: 600,  desc: 'Contracts rate +75%',  type: 'contracts', mult: 1.75 },
   { id: 5, name: 'World Domination',     cost: 1500, desc: 'DP production +100%',  type: 'dp',        mult: 2    },
+  // Extended WM upgrades (T2 phase)
+  { id: 6,  name: 'Logistics Network',  cost: 3000,   desc: 'Contracts rate +50%',  type: 'contracts', mult: 1.5  },
+  { id: 7,  name: 'DP Outsourcing',     cost: 5000,   desc: 'DP production +75%',   type: 'dp',        mult: 1.75 },
+  { id: 8,  name: 'Free Trade Zone',    cost: 10000,  desc: 'Contracts rate +100%', type: 'contracts', mult: 2    },
+  { id: 9,  name: 'Data Silk Road',     cost: 20000,  desc: 'DP production +150%',  type: 'dp',        mult: 2.5  },
+  { id: 10, name: 'Global Monopoly',    cost: 50000,  desc: 'Contracts rate +200%', type: 'contracts', mult: 3    },
+  { id: 11, name: 'Planetary Dominion', cost: 100000, desc: 'DP production +300%',  type: 'dp',        mult: 4    },
 ];
 
 const QUESTS = [
@@ -450,7 +490,6 @@ function clickPower() {
   let power = 1;
   if (state.treeNodes[1]) power *= 5;            // Click Mastery ×5
   if (state.treeNodes[5]) power *= 2;            // AI Automation click ×2
-  if (state.worldUpgrades[1]) power *= 3;        // Data Embassy ×3
   if (state.questsCompleted[1]) power *= 3;      // Analyst Only reward ×3
   for (let i = 0; i < UPGRADES.length; i++) {
     if (!state.upgrades[i]) continue;
@@ -483,6 +522,12 @@ function calcContractsRate() {
     if (state.worldUpgrades[i] && WORLD_UPGRADES[i].type === 'contracts') rate *= WORLD_UPGRADES[i].mult;
   }
   if (state.treeNodes[6]) rate *= 3; // Global Expansion: contracts ×3
+  // Upgrade contracts boosts
+  for (let i = 0; i < UPGRADES.length; i++) {
+    if (state.upgrades[i] && UPGRADES[i].effect && UPGRADES[i].effect.type === 'contractsMultiplier') {
+      rate *= UPGRADES[i].effect.multiplier;
+    }
+  }
   return rate;
 }
 
