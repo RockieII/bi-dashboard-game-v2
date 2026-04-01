@@ -405,15 +405,20 @@ html, body {
 
 /* === SPARKLINE === */
 #sparkline-wrap {
-  padding: 8px 10px;
+  padding: 4px 6px;
+  transition: flex 0.2s ease;
+}
+
+#sparkline-wrap.collapsed {
+  flex: 0 0 auto;
+}
+
+#sparkline-wrap.collapsed #sparkline {
+  display: none;
 }
 
 #sparkline-title {
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: 0;
 }
 
 #sparkline {
