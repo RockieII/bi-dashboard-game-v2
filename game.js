@@ -133,6 +133,9 @@ const UPGRADES = [
     cost: { resource: 'dataPoints', amount: 500000000 },  effect: { type: 'allMultiplier', multiplier: 2 } },
 ];
 
+// Lookup maps — use these instead of UPGRADES[id] to decouple id from array index
+const UPGRADE_MAP = Object.fromEntries(UPGRADES.map(u => [u.id, u]));
+
 // ═══ ACHIEVEMENTS ═══
 
 const ACHIEVEMENTS = [
@@ -210,6 +213,8 @@ const WORLD_UPGRADES = [
   { id: 10, name: 'Global Monopoly',    cost: 50000,  desc: 'Contracts rate +200%', type: 'contracts', mult: 3    },
   { id: 11, name: 'Planetary Dominion', cost: 100000, desc: 'DP production +300%',  type: 'dp',        mult: 4    },
 ];
+
+const WORLD_UPGRADE_MAP = Object.fromEntries(WORLD_UPGRADES.map(u => [u.id, u]));
 
 const QUESTS = [
   { id: 0, name: 'Startup Mode',   restriction: 'Max 5 producers total',
@@ -432,8 +437,8 @@ function producerEffectiveRate(p) {
   if (state.treeNodes[8]) mult *= 10;                             // Data Empire: all ×10
 
   // World upgrade effects (only DP-type boosts affect producers)
-  for (let i = 0; i < WORLD_UPGRADES.length; i++) {
-    if (state.worldUpgrades[i] && WORLD_UPGRADES[i].type === 'dp') mult *= WORLD_UPGRADES[i].mult;
+  for (const wu of WORLD_UPGRADES) {
+    if (state.worldUpgrades[wu.id] && wu.type === 'dp') mult *= wu.mult;
   }
 
   // Quest reward effects (permanent)
@@ -451,11 +456,10 @@ function producerEffectiveRate(p) {
   const skipT1Upgrades = state.inChallenge && state.challengeId === 3;
 
   // Per-producer upgrade multipliers
-  for (let i = 0; i < UPGRADES.length; i++) {
-    if (!state.upgrades[i]) continue;
-    const u = UPGRADES[i];
+  for (const u of UPGRADES) {
+    if (!state.upgrades[u.id]) continue;
     if (skipT1Upgrades) {
-      const grp = UPGRADE_GROUPS.find(g => g.ids.includes(i));
+      const grp = UPGRADE_GROUPS.find(g => g.ids.includes(u.id));
       if (grp && grp.id === 'grp-t1') continue;
     }
     applyEffectToProducer(u.effect, p.id, (m) => { mult *= m; });
@@ -492,9 +496,9 @@ function clickPower() {
   if (state.treeNodes[1]) power *= 5;            // Click Mastery ×5
   if (state.treeNodes[5]) power *= 2;            // AI Automation click ×2
   if (state.questsCompleted[1]) power *= 3;      // Analyst Only reward ×3
-  for (let i = 0; i < UPGRADES.length; i++) {
-    if (!state.upgrades[i]) continue;
-    gatherClickMultiplier(UPGRADES[i].effect, (m) => { power *= m; });
+  for (const u of UPGRADES) {
+    if (!state.upgrades[u.id]) continue;
+    gatherClickMultiplier(u.effect, (m) => { power *= m; });
   }
   for (let i = 0; i < ACHIEVEMENTS.length; i++) {
     if (!state.achievements[i]) continue;
@@ -519,14 +523,14 @@ function calcContractsRate() {
     .filter(t => state.conquered[t.idx])
     .reduce((s, t) => s + t.rate, 0);
   // World upgrade contracts boosts
-  for (let i = 0; i < WORLD_UPGRADES.length; i++) {
-    if (state.worldUpgrades[i] && WORLD_UPGRADES[i].type === 'contracts') rate *= WORLD_UPGRADES[i].mult;
+  for (const wu of WORLD_UPGRADES) {
+    if (state.worldUpgrades[wu.id] && wu.type === 'contracts') rate *= wu.mult;
   }
   if (state.treeNodes[6]) rate *= 3; // Global Expansion: contracts ×3
   // Upgrade contracts boosts
-  for (let i = 0; i < UPGRADES.length; i++) {
-    if (state.upgrades[i] && UPGRADES[i].effect && UPGRADES[i].effect.type === 'contractsMultiplier') {
-      rate *= UPGRADES[i].effect.multiplier;
+  for (const u of UPGRADES) {
+    if (state.upgrades[u.id] && u.effect && u.effect.type === 'contractsMultiplier') {
+      rate *= u.effect.multiplier;
     }
   }
   return rate;
@@ -670,8 +674,8 @@ function buyProducer(id, amount) {
 // ═══ BUY UPGRADE ═══
 
 function buyUpgrade(id) {
-  const u = UPGRADES[id];
-  if (state.upgrades[id]) return;
+  const u = UPGRADE_MAP[id];
+  if (!u || state.upgrades[id]) return;
   const resource = u.cost.resource;
   if (state[resource] < u.cost.amount) return;
   state[resource] -= u.cost.amount;
@@ -683,7 +687,7 @@ function buyUpgrade(id) {
 // ═══ BUY WORLD UPGRADE ═══
 
 function buyWorldUpgrade(id) {
-  const u = WORLD_UPGRADES[id];
+  const u = WORLD_UPGRADE_MAP[id];
   if (state.worldUpgrades[id]) return;
   if (state.contracts < u.cost) return;
   state.contracts -= u.cost;
@@ -900,9 +904,9 @@ function checkAchievements() {
 // ═══ UPGRADE UNLOCK CHECKS ═══
 
 function checkUpgradeUnlocks() {
-  for (let i = 0; i < UPGRADES.length; i++) {
+  for (const u of UPGRADES) {
+    const i = u.id;
     if (state.upgradeVisible[i]) continue;
-    const u = UPGRADES[i];
     const resource = u.cost.resource;
     const threshold = u.cost.amount * 0.9;
     if (state[resource] >= threshold || state.lifetimeDP >= threshold) {
@@ -1428,9 +1432,9 @@ function buildUpgradePillsInto(containerId, groups) {
   if (!container) return;
   container.innerHTML = '';
   for (const grp of groups) {
-    const sortedIds = [...grp.ids].sort((a, b) => UPGRADES[a].cost.amount - UPGRADES[b].cost.amount);
+    const sortedIds = [...grp.ids].sort((a, b) => UPGRADE_MAP[a].cost.amount - UPGRADE_MAP[b].cost.amount);
     for (const i of sortedIds) {
-      const u = UPGRADES[i];
+      const u = UPGRADE_MAP[i];
       const purchased = state.upgrades[i];
       const resource = u.cost.resource;
       const canAfford = !purchased && state[resource] >= u.cost.amount;
@@ -1465,7 +1469,8 @@ function updateUpgradePills(containerId, grp) {
     pill.style.display = state.upgradeVisible[i] ? '' : 'none';
     if (!state.upgradeVisible[i]) continue;
 
-    const u = UPGRADES[i];
+    const u = UPGRADE_MAP[i];
+    if (!u) continue;
     const purchased = state.upgrades[i];
     const resource = u.cost.resource;
     const canAfford = !purchased && state[resource] >= u.cost.amount;
