@@ -142,7 +142,7 @@ html, body {
 .kpi-sub .delta-up   { color: var(--teal); }
 .kpi-sub .delta-down { color: var(--red); }
 
-#kpi-contracts-card { display: none; }
+
 
 /* === MAIN CONTENT === */
 #content {
@@ -197,7 +197,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 0 2cqh;
+  height: 4cqh;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   background: var(--bg);
@@ -226,7 +227,7 @@ html, body {
 /* === PANEL BODY === */
 .panel-body {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   min-height: 0;
   padding: 1cqh;
   display: flex;
@@ -247,42 +248,73 @@ html, body {
   flex: 1;
 }
 
+/* === SUB-CONTAINER HEADER === */
+.sub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sub-header .section-divider {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.filter-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.filter-btn:hover {
+  background: var(--panel-hover);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
 /* === LOCKED PLACEHOLDER === */
 .locked-placeholder {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  opacity: 0.45;
   user-select: none;
 }
 
-.locked-icon {
-  font-size: 1.6rem;
-}
-
-.locked-hint {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
+.locked-progress {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-muted);
   text-align: center;
-  padding: 0 16px;
-  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
 }
 
-/* === CLICK TARGET (inside panel-click) === */
+/* Hidden panels (not next to unlock) */
+.dash-panel.hidden-panel {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* === CLICK TARGET (is a panel-sub) === */
 #click-target {
-  border: 2px solid var(--blue);
-  border-radius: 10px;
-  padding: 20px 16px;
+  border-color: var(--blue);
   cursor: pointer;
   user-select: none;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   transition: border-color 0.15s, background 0.15s, transform 0.08s;
   position: relative;
-  overflow: hidden;
-  margin-bottom: 8px;
 }
 
 #click-target:hover {
@@ -434,13 +466,14 @@ html, body {
 .owned-badge {
   background: var(--blue);
   color: #fff;
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  padding: 1px 5px;
+  padding: 2px 7px;
   border-radius: 8px;
-  min-width: 20px;
+  min-width: 24px;
   text-align: center;
-  margin-bottom: 2px;
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .prod-cost {
@@ -452,6 +485,33 @@ html, body {
 
 .prod-cost.affordable  { color: var(--teal); }
 .prod-cost.cant-afford { color: var(--red); }
+
+.buy-btns {
+  display: flex;
+  gap: 3px;
+  margin-top: 3px;
+}
+
+.buy-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.buy-btn:hover:not(.cant-buy) {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.buy-btn.cant-buy {
+  opacity: 0.3;
+  cursor: default;
+}
 
 .starvation-badge {
   display: inline-block;
@@ -582,8 +642,15 @@ html, body {
   cursor: pointer;
 }
 
-#wm-map-svg path.locked { fill: var(--text-muted); opacity: 0.3; }
-#wm-map-svg path.conquered { opacity: 0.85; }
+#wm-map-svg path.locked { fill: var(--text-muted); opacity: 0.3; cursor: default; }
+#wm-map-svg path.conquerable { opacity: 0.5; cursor: pointer; animation: conquer-pulse 1.5s ease-in-out infinite; }
+#wm-map-svg path.conquered { opacity: 0.85; cursor: default; }
+#wm-map-svg path.conquered:hover { opacity: 1; }
+
+@keyframes conquer-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.7; }
+}
 #wm-map-svg path.conquered:hover { opacity: 1; }
 
 .wm-legend {
@@ -972,6 +1039,92 @@ html, body {
 
 .modal-overlay.open { display: flex; }
 
+/* === ACHIEVEMENTS MODAL === */
+#achieve-modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 500px;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#achieve-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#achieve-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+}
+
+#achieve-count {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-left: auto;
+  margin-right: 12px;
+}
+
+#achieve-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px 14px;
+}
+
+.achieve-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.achieve-row:last-child { border-bottom: none; }
+
+.achieve-row.done .achieve-icon { color: var(--teal); }
+.achieve-row:not(.done) .achieve-icon { color: var(--text-muted); }
+
+.achieve-icon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.achieve-info { flex: 1; min-width: 0; }
+
+.achieve-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.achieve-row:not(.done) .achieve-name { color: var(--text-muted); }
+
+.achieve-desc {
+  font-size: 0.62rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+.achieve-row:not(.done) .achieve-desc { color: var(--text-muted); }
+
+.achieve-reward {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--teal);
+  flex-shrink: 0;
+  text-align: right;
+}
+.achieve-row:not(.done) .achieve-reward { color: var(--text-muted); }
+
 /* === ACTIVITY LOG MODAL === */
 #log-modal {
   background: var(--panel);
@@ -1001,7 +1154,7 @@ html, body {
   color: var(--text-primary);
 }
 
-#log-close, #status-close, #settings-close {
+#log-close, #achieve-close, #status-close, #settings-close {
   background: transparent;
   border: none;
   color: var(--text-secondary);
@@ -1011,7 +1164,7 @@ html, body {
   border-radius: 4px;
   transition: color 0.15s, background 0.15s;
 }
-#log-close:hover, #status-close:hover, #settings-close:hover {
+#log-close:hover, #achieve-close:hover, #status-close:hover, #settings-close:hover {
   color: var(--text-primary);
   background: var(--panel-hover);
 }

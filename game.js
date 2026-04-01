@@ -14,7 +14,7 @@ const PRODUCERS = [
   { id: 0, tier: 1, name: 'Excel Analyst',  emoji: '📊', desc: 'Junior analyst manually crunching spreadsheets.',
     baseCost: 10,     costMult: 1.13, baseProduction: 0.1,  produces: 'dataPoints' },
   { id: 1, tier: 1, name: 'SQL Developer',  emoji: '🗄️', desc: 'Writes queries against transactional databases.',
-    baseCost: 100,    costMult: 1.13, baseProduction: 0.5,  produces: 'dataPoints' },
+    baseCost: 100,    costMult: 1.13, baseProduction: 1,    produces: 'dataPoints' },
   { id: 2, tier: 1, name: 'ETL Pipeline',   emoji: '⚙️', desc: 'Automated nightly data extraction and loading.',
     baseCost: 1100,   costMult: 1.13, baseProduction: 4,    produces: 'dataPoints' },
   { id: 3, tier: 1, name: 'Data Catalog',   emoji: '📁', desc: 'Classifies and indexes all data assets centrally.',
@@ -26,45 +26,36 @@ const PRODUCERS = [
     baseCost: 75000,  costMult: 1.13, baseProduction: 1.5,  produces: 'insights',   consumeRate: 5,  consumeResource: 'dataPoints' },
   { id: 6, tier: 2, name: 'Data Lake',           emoji: '🌊', desc: 'Schema-on-read blob storage at petabyte scale.',
     baseCost: 500000, costMult: 1.13, baseProduction: 8,    produces: 'insights',   consumeRate: 20, consumeResource: 'dataPoints' },
-  // Tier 3 — consume Insights, produce Revenue/s
-  { id: 7, tier: 3, name: 'ML Model',              emoji: '🤖', desc: 'Predictive analytics packaged and sold.',
-    baseCost: 200,    costMult: 1.13, baseProduction: 0.05, produces: 'revenue',    consumeRate: 0.5,consumeResource: 'insights', costResource: 'insights' },
-  { id: 8, tier: 3, name: 'RT Analytics Engine',   emoji: '⚡', desc: 'Streaming pipeline — millions of events/s.',
-    baseCost: 2000,   costMult: 1.13, baseProduction: 0.4,  produces: 'revenue',    consumeRate: 3,  consumeResource: 'insights', costResource: 'insights' },
-  { id: 9, tier: 3, name: 'AI Insights Platform',  emoji: '✨', desc: 'GenAI co-pilot for C-suite recommendations.',
-    baseCost: 20000,  costMult: 1.13, baseProduction: 3,    produces: 'revenue',    consumeRate: 15, consumeResource: 'insights', costResource: 'insights' },
-  { id: 10, tier: 3, name: 'Strategic Advisory Firm', emoji: '🏢', desc: 'Top-tier consultancy generating enterprise value.',
-    baseCost: 50000,  costMult: 1.13, baseProduction: 15,   produces: 'revenue',    consumeRate: 60, consumeResource: 'insights', costResource: 'insights', hidden: true },
 ];
 
 const UPGRADES = [
   { id: 0,  name: 'Pivot Tables',          desc: 'Excel Analysts 2× production.',
     unlock: { type: 'owned', producerId: 0, count: 1 },
-    cost: { resource: 'dataPoints', amount: 50 },     effect: { type: 'producerMultiplier', producerId: 0, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 25 },     effect: { type: 'producerMultiplier', producerId: 0, multiplier: 2 } },
   { id: 1,  name: 'VLOOKUP Mastery',       desc: 'Excel Analysts 2× production.',
     unlock: { type: 'owned', producerId: 0, count: 5 },
-    cost: { resource: 'dataPoints', amount: 200 },    effect: { type: 'producerMultiplier', producerId: 0, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 100 },    effect: { type: 'producerMultiplier', producerId: 0, multiplier: 2 } },
   { id: 2,  name: 'Power Query',           desc: 'Excel Analysts 2× production.',
     unlock: { type: 'owned', producerId: 0, count: 25 },
-    cost: { resource: 'dataPoints', amount: 5000 },   effect: { type: 'producerMultiplier', producerId: 0, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 2500 },   effect: { type: 'producerMultiplier', producerId: 0, multiplier: 2 } },
   { id: 3,  name: 'Query Optimization',    desc: 'SQL Developers 2× production.',
     unlock: { type: 'owned', producerId: 1, count: 1 },
-    cost: { resource: 'dataPoints', amount: 500 },    effect: { type: 'producerMultiplier', producerId: 1, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 250 },    effect: { type: 'producerMultiplier', producerId: 1, multiplier: 2 } },
   { id: 4,  name: 'Stored Procedures',     desc: 'SQL Developers 2× production.',
     unlock: { type: 'owned', producerId: 1, count: 5 },
-    cost: { resource: 'dataPoints', amount: 2500 },   effect: { type: 'producerMultiplier', producerId: 1, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 1200 },   effect: { type: 'producerMultiplier', producerId: 1, multiplier: 2 } },
   { id: 5,  name: 'Incremental Load',      desc: 'ETL Pipelines 2× production.',
     unlock: { type: 'owned', producerId: 2, count: 1 },
-    cost: { resource: 'dataPoints', amount: 5000 },   effect: { type: 'producerMultiplier', producerId: 2, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 2500 },   effect: { type: 'producerMultiplier', producerId: 2, multiplier: 2 } },
   { id: 6,  name: 'CDC Streaming',         desc: 'ETL Pipelines 2× production.',
     unlock: { type: 'owned', producerId: 2, count: 5 },
-    cost: { resource: 'dataPoints', amount: 30000 },  effect: { type: 'producerMultiplier', producerId: 2, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 15000 },  effect: { type: 'producerMultiplier', producerId: 2, multiplier: 2 } },
   { id: 7,  name: 'Data Governance',       desc: 'All Tier 1 producers 1.5× production.',
-    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 500 },
-    cost: { resource: 'dataPoints', amount: 1000 },   effect: { type: 'allTierMultiplier', tier: 1, multiplier: 1.5 } },
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 300 },
+    cost: { resource: 'dataPoints', amount: 500 },    effect: { type: 'allTierMultiplier', tier: 1, multiplier: 1.5 } },
   { id: 8,  name: 'Cloud Migration',       desc: 'All Tier 1 producers 2× production.',
-    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 10000 },
-    cost: { resource: 'dataPoints', amount: 8000 },   effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 5000 },
+    cost: { resource: 'dataPoints', amount: 4000 },   effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
   { id: 9,  name: 'Star Schema Design',    desc: 'Power BI Dashboards 2× production.',
     unlock: { type: 'owned', producerId: 4, count: 1 },
     cost: { resource: 'dataPoints', amount: 6000 },   effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
@@ -80,55 +71,81 @@ const UPGRADES = [
   { id: 13, name: 'Delta Lake Format',     desc: 'Data Lakes 2× production.',
     unlock: { type: 'owned', producerId: 6, count: 1 },
     cost: { resource: 'dataPoints', amount: 400000 }, effect: { type: 'producerMultiplier', producerId: 6, multiplier: 2 } },
-  { id: 14, name: 'Feature Engineering',   desc: 'ML Models 2× production.',
-    unlock: { type: 'owned', producerId: 7, count: 1 },
-    cost: { resource: 'insights', amount: 150 },      effect: { type: 'producerMultiplier', producerId: 7, multiplier: 2 } },
-  { id: 15, name: 'AutoML Pipeline',       desc: 'ML Models 2× + click power 2×.',
-    unlock: { type: 'owned', producerId: 7, count: 5 },
-    cost: { resource: 'insights', amount: 1500 },     effect: { type: 'combo', effects: [
-      { type: 'producerMultiplier', producerId: 7, multiplier: 2 },
-      { type: 'clickMultiplier', multiplier: 2 },
-    ]} },
-  { id: 16, name: 'Foundation Model',      desc: 'All producers 3× production.',
-    unlock: { type: 'lifetimeEarned', resource: 'revenue', amount: 1000 },
-    cost: { resource: 'revenue', amount: 5000 },      effect: { type: 'allMultiplier', multiplier: 3 } },
   { id: 17, name: 'Touch Typing',          desc: 'Click power 2×.',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 10 },
-    cost: { resource: 'dataPoints', amount: 75 },     effect: { type: 'clickMultiplier', multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 30 },     effect: { type: 'clickMultiplier', multiplier: 2 } },
   { id: 18, name: 'Keyboard Shortcuts',    desc: 'Click power 2×.',
-    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 500 },
-    cost: { resource: 'dataPoints', amount: 1500 },   effect: { type: 'clickMultiplier', multiplier: 2 } },
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 300 },
+    cost: { resource: 'dataPoints', amount: 500 },    effect: { type: 'clickMultiplier', multiplier: 2 } },
   { id: 19, name: 'Macro Recorder',        desc: 'Click power 3×.',
     unlock: { type: 'owned', producerId: 1, count: 5 },
-    cost: { resource: 'dataPoints', amount: 12000 },  effect: { type: 'clickMultiplier', multiplier: 3 } },
+    cost: { resource: 'dataPoints', amount: 5000 },   effect: { type: 'clickMultiplier', multiplier: 3 } },
   { id: 20, name: 'RPA Bot',               desc: 'Click power 5×.',
-    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 50000 },
-    cost: { resource: 'dataPoints', amount: 40000 },  effect: { type: 'clickMultiplier', multiplier: 5 } },
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 25000 },
+    cost: { resource: 'dataPoints', amount: 15000 },  effect: { type: 'clickMultiplier', multiplier: 5 } },
   { id: 21, name: 'One-Click Reports',     desc: 'Click power 4×.',
     unlock: { type: 'owned', producerId: 4, count: 5 },
-    cost: { resource: 'dataPoints', amount: 80000 },  effect: { type: 'clickMultiplier', multiplier: 4 } },
+    cost: { resource: 'dataPoints', amount: 30000 },  effect: { type: 'clickMultiplier', multiplier: 4 } },
+  // Additional T1 upgrades
+  { id: 22, name: 'VBA Macros',             desc: 'Excel Analysts 3× production.',
+    unlock: { type: 'owned', producerId: 0, count: 50 },
+    cost: { resource: 'dataPoints', amount: 12000 },  effect: { type: 'producerMultiplier', producerId: 0, multiplier: 3 } },
+  { id: 23, name: 'Materialized Views',     desc: 'SQL Developers 3× production.',
+    unlock: { type: 'owned', producerId: 1, count: 25 },
+    cost: { resource: 'dataPoints', amount: 25000 },  effect: { type: 'producerMultiplier', producerId: 1, multiplier: 3 } },
+  { id: 24, name: 'Parallel Processing',    desc: 'ETL Pipelines 3× production.',
+    unlock: { type: 'owned', producerId: 2, count: 25 },
+    cost: { resource: 'dataPoints', amount: 100000 }, effect: { type: 'producerMultiplier', producerId: 2, multiplier: 3 } },
+  { id: 25, name: 'Metadata Indexing',      desc: 'Data Catalogs 2× production.',
+    unlock: { type: 'owned', producerId: 3, count: 1 },
+    cost: { resource: 'dataPoints', amount: 8000 },   effect: { type: 'producerMultiplier', producerId: 3, multiplier: 2 } },
+  { id: 26, name: 'Data Lineage Tracking',  desc: 'Data Catalogs 2× production.',
+    unlock: { type: 'owned', producerId: 3, count: 5 },
+    cost: { resource: 'dataPoints', amount: 40000 },  effect: { type: 'producerMultiplier', producerId: 3, multiplier: 2 } },
+  { id: 27, name: 'Data Mesh Architecture', desc: 'All Tier 1 producers 3× production.',
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 50000 },
+    cost: { resource: 'dataPoints', amount: 35000 },  effect: { type: 'allTierMultiplier', tier: 1, multiplier: 3 } },
+  { id: 28, name: 'Lakehouse Unification',  desc: 'All Tier 1 producers 2× production.',
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 250000 },
+    cost: { resource: 'dataPoints', amount: 150000 }, effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
+];
+
+// ═══ ACHIEVEMENTS ═══
+
+const ACHIEVEMENTS = [
+  { id: 0,  name: 'Spreadsheet Squad',     desc: 'Own 10 Excel Analysts',        check: () => state.owned[0] >= 10,  reward: 'Excel Analysts +25%',       effect: { type: 'producerMultiplier', producerId: 0, multiplier: 1.25 } },
+  { id: 1,  name: 'Excel Army',            desc: 'Own 25 Excel Analysts',        check: () => state.owned[0] >= 25,  reward: 'Excel Analysts +50%',       effect: { type: 'producerMultiplier', producerId: 0, multiplier: 1.5 } },
+  { id: 2,  name: 'Query Club',            desc: 'Own 10 SQL Developers',        check: () => state.owned[1] >= 10,  reward: 'SQL Developers +25%',       effect: { type: 'producerMultiplier', producerId: 1, multiplier: 1.25 } },
+  { id: 3,  name: 'Database Division',     desc: 'Own 25 SQL Developers',        check: () => state.owned[1] >= 25,  reward: 'SQL Developers +50%',       effect: { type: 'producerMultiplier', producerId: 1, multiplier: 1.5 } },
+  { id: 4,  name: 'Pipeline Crew',         desc: 'Own 10 ETL Pipelines',         check: () => state.owned[2] >= 10,  reward: 'ETL Pipelines +25%',        effect: { type: 'producerMultiplier', producerId: 2, multiplier: 1.25 } },
+  { id: 5,  name: 'Catalog Corps',         desc: 'Own 10 Data Catalogs',         check: () => state.owned[3] >= 10,  reward: 'Data Catalogs +25%',        effect: { type: 'producerMultiplier', producerId: 3, multiplier: 1.25 } },
+  { id: 6,  name: 'Data Workforce',        desc: 'Own 50 T1 producers total',    check: () => PRODUCERS.filter(p=>p.tier===1).reduce((s,p)=>s+state.owned[p.id],0) >= 50,  reward: 'All T1 +15%', effect: { type: 'allTierMultiplier', tier: 1, multiplier: 1.15 } },
+  { id: 7,  name: 'Data Factory',          desc: 'Own 100 T1 producers total',   check: () => PRODUCERS.filter(p=>p.tier===1).reduce((s,p)=>s+state.owned[p.id],0) >= 100, reward: 'All T1 +25%', effect: { type: 'allTierMultiplier', tier: 1, multiplier: 1.25 } },
+  { id: 8,  name: 'Click Enthusiast',      desc: 'Click 100 times',              check: () => state.totalClicks >= 100,    reward: 'Click power +50%',    effect: { type: 'clickMultiplier', multiplier: 1.5 } },
+  { id: 9,  name: 'Click Addict',          desc: 'Click 1,000 times',            check: () => state.totalClicks >= 1000,   reward: 'Click power +100%',   effect: { type: 'clickMultiplier', multiplier: 2 } },
+  { id: 10, name: 'First Million',         desc: 'Earn 1M lifetime Data Points', check: () => state.lifetimeDP >= 1e6, reward: 'All producers +10%',     effect: { type: 'allMultiplier', multiplier: 1.1 } },
+  { id: 11, name: 'Data Tycoon',           desc: 'Earn 10M lifetime Data Points',check: () => state.lifetimeDP >= 1e7, reward: 'All producers +20%',     effect: { type: 'allMultiplier', multiplier: 1.2 } },
 ];
 
 const UPGRADE_GROUPS = [
-  { id: 'grp-t1',    label: 'Tier 1',  tag: 'T1',    css: 'tag-tier1', ids: [0,1,2,3,4,5,6,7,8] },
+  { id: 'grp-t1',    label: 'Tier 1',  tag: 'T1',    css: 'tag-tier1', ids: [0,1,2,3,4,5,6,7,8,22,23,24,25,26,27,28] },
   { id: 'grp-t2',    label: 'Tier 2',  tag: 'T2',    css: 'tag-tier2', ids: [9,10,11,12,13] },
-  { id: 'grp-t3',    label: 'Tier 3',  tag: 'T3',    css: 'tag-tier3', ids: [14,15,16] },
   { id: 'grp-click', label: 'Click',   tag: 'Click', css: 'tag-click', ids: [17,18,19,20,21] },
 ];
 
 const TERRITORIES = [
-  { id: 'na', name: 'North America', emoji: '🌎', need: 5,   rate: 0.1, color: '#4a9eff',
-    d: 'M30,14 L88,10 L108,28 L102,52 L88,72 L72,92 L56,98 L38,80 L22,56 L26,32 Z' },
-  { id: 'sa', name: 'South America', emoji: '🌎', need: 15,  rate: 0.3, color: '#56b6c2',
-    d: 'M80,90 L120,86 L123,100 L118,120 L108,148 L90,155 L76,144 L74,120 L78,96 Z' },
-  { id: 'eu', name: 'Europe',        emoji: '🌍', need: 30,  rate: 0.8, color: '#c678dd',
-    d: 'M136,38 L152,20 L172,24 L182,34 L178,52 L164,62 L145,62 L132,50 Z' },
-  { id: 'af', name: 'Africa',        emoji: '🌍', need: 50,  rate: 1.5, color: '#e5c07b',
-    d: 'M138,55 L180,50 L192,68 L188,98 L178,128 L160,150 L144,150 L128,132 L125,102 L130,72 Z' },
-  { id: 'as', name: 'Asia',          emoji: '🌏', need: 75,  rate: 3.0, color: '#e06c75',
-    d: 'M155,15 L230,8 L270,18 L278,30 L274,56 L258,74 L228,84 L192,80 L165,66 L148,45 L152,22 Z' },
-  { id: 'oc', name: 'Oceania',       emoji: '🌏', need: 100, rate: 6.0, color: '#3fb950',
-    d: 'M247,93 L270,90 L278,108 L276,135 L260,148 L244,145 L234,128 L238,108 Z' },
+  { id: 'na', idx: 0, name: 'North America', emoji: '🌎', need: 15,  rate: 0.1, color: '#4a9eff',
+    d: 'M25 8 L30 6 L35 8 L33 12 L28 11 L22 14 L18 18 L15 22 L12 28 L10 35 L12 38 L15 36 L20 33 L25 30 L30 28 L35 25 L40 22 L45 20 L50 18 L55 17 L60 18 L65 20 L70 22 L75 25 L78 28 L80 32 L82 36 L85 38 L90 36 L93 33 L95 30 L97 28 L100 30 L102 34 L100 38 L95 42 L90 45 L85 48 L82 52 L80 56 L78 60 L80 63 L82 66 L80 68 L76 70 L72 72 L68 70 L65 66 L62 62 L58 58 L55 55 L50 53 L45 52 L40 54 L35 58 L30 62 L28 66 L25 70 L22 72 L18 70 L15 65 L12 60 L10 55 L8 50 L7 45 L8 40 L10 35 L13 30 L16 25 L20 20 L24 15 L27 10 Z' },
+  { id: 'sa', idx: 1, name: 'South America', emoji: '🌎', need: 35,  rate: 0.3, color: '#56b6c2',
+    d: 'M72 80 L76 78 L80 79 L84 80 L88 82 L91 85 L93 88 L94 92 L93 96 L92 100 L90 104 L88 108 L86 112 L84 115 L82 118 L80 122 L78 126 L76 130 L74 134 L72 138 L70 141 L68 144 L66 146 L64 148 L62 149 L60 150 L58 148 L59 145 L60 142 L62 138 L63 134 L64 130 L65 126 L66 122 L66 118 L65 114 L64 110 L63 106 L62 102 L62 98 L63 94 L64 90 L66 86 L68 83 L70 81 Z' },
+  { id: 'eu', idx: 2, name: 'Europe',        emoji: '🌍', need: 60,  rate: 0.8, color: '#c678dd',
+    d: 'M128 18 L131 14 L134 10 L137 8 L140 6 L144 5 L148 7 L152 10 L155 8 L158 6 L160 8 L162 12 L165 10 L168 12 L170 15 L172 18 L170 22 L168 25 L165 28 L162 30 L160 32 L157 34 L155 36 L152 38 L150 40 L148 42 L145 43 L142 42 L140 40 L138 38 L136 40 L134 43 L132 41 L130 38 L128 35 L126 32 L127 28 L128 24 L129 20 Z' },
+  { id: 'af', idx: 3, name: 'Africa',        emoji: '🌍', need: 100, rate: 1.5, color: '#e5c07b',
+    d: 'M135 44 L138 43 L142 44 L146 45 L150 46 L154 48 L158 50 L162 52 L165 55 L168 58 L170 62 L172 66 L173 70 L174 74 L173 78 L172 82 L170 86 L168 90 L166 94 L164 98 L162 102 L160 106 L157 110 L154 114 L151 118 L148 122 L146 125 L144 128 L142 130 L140 132 L138 133 L136 132 L135 129 L134 126 L133 122 L132 118 L131 114 L130 110 L130 106 L130 102 L131 98 L132 94 L132 90 L131 86 L130 82 L128 78 L126 74 L125 70 L125 66 L126 62 L128 58 L130 54 L132 50 L134 47 Z' },
+  { id: 'as', idx: 4, name: 'Asia',          emoji: '🌏', need: 150, rate: 3.0, color: '#e06c75',
+    d: 'M172 5 L176 3 L180 4 L185 6 L190 5 L195 4 L200 3 L206 4 L212 5 L218 4 L224 3 L230 4 L236 6 L242 5 L248 4 L254 5 L260 7 L266 6 L272 8 L278 10 L282 12 L286 10 L289 13 L288 17 L285 20 L282 22 L278 24 L274 26 L270 28 L266 30 L262 32 L258 34 L254 32 L250 30 L246 32 L242 35 L238 38 L234 40 L230 42 L226 44 L222 46 L218 48 L214 50 L210 52 L206 55 L202 58 L198 62 L195 66 L192 70 L190 74 L188 78 L186 75 L184 71 L182 67 L180 63 L178 60 L176 64 L174 68 L172 72 L170 76 L168 72 L170 68 L172 64 L174 60 L175 56 L174 52 L172 48 L170 44 L168 40 L166 36 L168 32 L170 28 L172 24 L174 20 L175 16 L174 12 L173 8 Z' },
+  { id: 'oc', idx: 5, name: 'Oceania',       emoji: '🌏', need: 250, rate: 6.0, color: '#3fb950',
+    d: 'M238 95 L242 92 L248 91 L254 92 L260 93 L265 95 L269 98 L272 101 L274 104 L275 108 L274 112 L272 116 L269 119 L266 122 L262 124 L258 126 L254 128 L250 130 L246 131 L242 132 L238 131 L236 128 L234 124 L233 120 L234 116 L236 112 L235 108 L234 104 L236 100 L238 97 Z' },
 ];
 
 const WORLD_UPGRADES = [
@@ -149,20 +166,18 @@ const QUESTS = [
     goalResource: 'lifetimeDP',       goalAmount: 50000, reward: 'All T1 ×2',            rewardType: 't1x2'    },
   { id: 3, name: 'Insights Rush',  restriction: 'No T1 upgrades apply',
     goalResource: 'lifetimeInsights', goalAmount: 500,   reward: 'All T2 ×2',            rewardType: 't2x2'    },
-  { id: 4, name: 'Revenue Sprint', restriction: 'Max 3 of each T3 producer',
-    goalResource: 'lifetimeRevenue',  goalAmount: 100,   reward: 'All producers ×1.5',   rewardType: 'allx15'  },
 ];
 
 // 0-indexed (id 0 = node 1 displayed as "1")
 const TREE_NODES_DEF = [
   { id: 0, name: 'Silver Certification', cost: 5,   desc: 'All producers 1.5×',             parent: null },
   { id: 1, name: 'Click Mastery',        cost: 15,  desc: 'Click power ×5',                 parent: 0    },
-  { id: 2, name: 'Platinum Partner',     cost: 30,  desc: 'Unlock Strategic Advisory Firm', parent: 0    },
+  { id: 2, name: 'Platinum Partner',     cost: 30,  desc: 'All T2 producers ×2',            parent: 0    },
   { id: 3, name: 'Automation Expert',    cost: 60,  desc: 'All T1 producers ×3',            parent: 1    },
   { id: 4, name: 'Enterprise License',   cost: 80,  desc: 'All producers ×2',               parent: 2    },
   { id: 5, name: 'AI Automation',        cost: 150, desc: 'All producers ×2 + click ×2',    parent: 4    },
   { id: 6, name: 'Global Expansion',     cost: 120, desc: 'Contracts rate ×3',              parent: 4    },
-  { id: 7, name: 'Market Leader',        cost: 300, desc: 'All T3 producers ×5',            parent: 6    },
+  { id: 7, name: 'Market Leader',        cost: 300, desc: 'All T2 producers ×5',            parent: 6    },
   { id: 8, name: 'Data Empire',          cost: 800, desc: 'All producers ×10',              parent: 7    },
 ];
 
@@ -211,23 +226,24 @@ function defaultState() {
   return {
     dataPoints: 0,
     insights: 0,
-    revenue: 0,
     reputationPoints: 0,
     prestigeCount: 0,
     lifetimeDP: 0,
     lifetimeInsights: 0,
-    lifetimeRevenue: 0,
     contracts: 0,
     lifetimeContracts: 0,
     owned: new Array(PRODUCERS.length).fill(0),
     upgrades: new Array(UPGRADES.length).fill(false),
     upgradeVisible: new Array(UPGRADES.length).fill(false),
+    conquered: new Array(TERRITORIES.length).fill(false),
     worldUpgrades: new Array(WORLD_UPGRADES.length).fill(false),
     questsCompleted: new Array(QUESTS.length).fill(false),
+    achievements: new Array(ACHIEVEMENTS.length).fill(false),
     treeNodes: new Array(TREE_NODES_DEF.length).fill(false),
     inChallenge: false,
     challengeId: -1,
     goalMet: false,
+    totalClicks: 0,
     lastSaveTime: Date.now(),
     tickCount: 0,
   };
@@ -237,7 +253,6 @@ let state = defaultState();
 let sparklineData = [];
 let activityLog = [];
 let starvationFlags = new Array(PRODUCERS.length).fill(false);
-let totalClicks = 0;
 let totalClickDP = 0;
 let sessionStart = Date.now();
 let challengeSnapshot = null;
@@ -253,7 +268,9 @@ function saveGame() {
     owned: [...state.owned],
     upgrades: [...state.upgrades],
     upgradeVisible: [...state.upgradeVisible],
+    conquered: [...state.conquered],
     worldUpgrades: [...state.worldUpgrades],
+    achievements: [...state.achievements],
     questsCompleted: [...state.questsCompleted],
     treeNodes: [...state.treeNodes],
     lastSaveTime: Date.now(),
@@ -274,16 +291,16 @@ function loadGame() {
     state.owned = padArray(state.owned, PRODUCERS.length, 0);
     state.upgrades = padArray(state.upgrades, UPGRADES.length, false);
     state.upgradeVisible = padArray(state.upgradeVisible, UPGRADES.length, false);
+    state.conquered = padArray(state.conquered, TERRITORIES.length, false);
     state.worldUpgrades = padArray(state.worldUpgrades, WORLD_UPGRADES.length, false);
+    state.achievements = padArray(state.achievements, ACHIEVEMENTS.length, false);
     state.questsCompleted = padArray(state.questsCompleted, QUESTS.length, false);
     state.treeNodes = padArray(state.treeNodes, TREE_NODES_DEF.length, false);
 
-    // Re-populate panel unlocks from loaded state
-    if (state.lifetimeDP >= 5000 || (state.worldUpgrades && state.worldUpgrades.some(Boolean)))
-      panelsUnlocked.add('wm');
-    if (state.lifetimeInsights >= 50) panelsUnlocked.add('t2');
-    if (state.lifetimeContracts > 0)  panelsUnlocked.add('quests');
-    if (calcRPGain() >= 5)            panelsUnlocked.add('prestige');
+    // Re-populate panel unlocks from loaded state (sequential order)
+    if (state.lifetimeDP >= 5000) panelsUnlocked.add('wm');
+    if (state.conquered && state.conquered.every(Boolean)) panelsUnlocked.add('t2');
+    if (calcRPGain() >= 5) panelsUnlocked.add('prestige');
 
     const offlineSec = Math.min((Date.now() - (saved.lastSaveTime || Date.now())) / 1000, MAX_OFFLINE_HOURS * 3600);
     if (offlineSec > 10) {
@@ -315,6 +332,27 @@ function producerCost(p) {
   return p.baseCost * Math.pow(p.costMult, state.owned[p.id]);
 }
 
+function producerCostN(p, n) {
+  let total = 0;
+  for (let i = 0; i < n; i++) {
+    total += p.baseCost * Math.pow(p.costMult, state.owned[p.id] + i);
+  }
+  return total;
+}
+
+function producerMaxAffordable(p) {
+  const resource = p.costResource || 'dataPoints';
+  let budget = state[resource];
+  let count = 0;
+  let cost = producerCost(p);
+  while (budget >= cost) {
+    budget -= cost;
+    count++;
+    cost = p.baseCost * Math.pow(p.costMult, state.owned[p.id] + count);
+  }
+  return count;
+}
+
 function applyQuestRestriction(p) {
   if (!state.inChallenge) return 1;
   const id = state.challengeId;
@@ -331,10 +369,11 @@ function producerEffectiveRate(p) {
 
   // Tree node effects
   if (state.treeNodes[0]) mult *= 1.5;                             // Silver Cert: all ×1.5
+  if (state.treeNodes[2] && p.tier === 2) mult *= 2;              // Platinum Partner: T2 ×2
   if (state.treeNodes[3] && p.tier === 1) mult *= 3;              // Automation Expert: T1 ×3
   if (state.treeNodes[4]) mult *= 2;                              // Enterprise License: all ×2
   if (state.treeNodes[5]) mult *= 2;                              // AI Automation: all ×2
-  if (state.treeNodes[7] && p.tier === 3) mult *= 5;             // Market Leader: T3 ×5
+  if (state.treeNodes[7] && p.tier === 2) mult *= 5;             // Market Leader: T2 ×5
   if (state.treeNodes[8]) mult *= 10;                             // Data Empire: all ×10
 
   // World upgrade effects
@@ -348,7 +387,12 @@ function producerEffectiveRate(p) {
   if (state.questsCompleted[0] && p.tier === 1) mult *= 2;       // Startup Mode reward: T1 ×2
   if (state.questsCompleted[2] && p.tier === 1) mult *= 2;       // No Shortcuts reward: T1 ×2
   if (state.questsCompleted[3] && p.tier === 2) mult *= 2;       // Insights Rush reward: T2 ×2
-  if (state.questsCompleted[4]) mult *= 1.5;                     // Revenue Sprint reward: all ×1.5
+
+  // Achievement effects
+  for (let i = 0; i < ACHIEVEMENTS.length; i++) {
+    if (!state.achievements[i]) continue;
+    applyEffectToProducer(ACHIEVEMENTS[i].effect, p.id, (m) => { mult *= m; });
+  }
 
   // Quest 4 restriction: no T1 upgrades apply
   const skipT1Upgrades = state.inChallenge && state.challengeId === 3;
@@ -385,7 +429,6 @@ function calcTotalProduction(resource) {
   let total = 0;
   for (const p of PRODUCERS) {
     if (p.produces !== resource) continue;
-    if (p.hidden && !state.treeNodes[2]) continue;
     total += producerEffectiveRate(p);
   }
   return total;
@@ -401,6 +444,10 @@ function clickPower() {
     if (!state.upgrades[i]) continue;
     gatherClickMultiplier(UPGRADES[i].effect, (m) => { power *= m; });
   }
+  for (let i = 0; i < ACHIEVEMENTS.length; i++) {
+    if (!state.achievements[i]) continue;
+    gatherClickMultiplier(ACHIEVEMENTS[i].effect, (m) => { power *= m; });
+  }
   return power;
 }
 
@@ -411,21 +458,33 @@ function gatherClickMultiplier(effect, cb) {
 }
 
 function calcRPGain() {
-  return Math.floor(Math.pow(state.lifetimeRevenue / 1000, 0.6) * 7);
+  return Math.floor(Math.pow(state.lifetimeInsights / 100, 0.6) * 5);
 }
 
 function calcContractsRate() {
-  const totalOwned = state.owned.reduce((s, n) => s + n, 0);
   let rate = TERRITORIES
-    .filter(t => totalOwned >= t.need)
+    .filter(t => state.conquered[t.idx])
     .reduce((s, t) => s + t.rate, 0);
   if (state.treeNodes[6]) rate *= 3; // Global Expansion: contracts ×3
   return rate;
 }
 
 function getConqueredSet() {
+  return new Set(TERRITORIES.filter(t => state.conquered[t.idx]).map(t => t.id));
+}
+
+function conquerTerritory(idx) {
+  const t = TERRITORIES[idx];
+  if (state.conquered[idx]) return;
   const totalOwned = state.owned.reduce((s, n) => s + n, 0);
-  return new Set(TERRITORIES.filter(t => totalOwned >= t.need).map(t => t.id));
+  if (totalOwned < t.need) {
+    showToast(`Need ${t.need} producers (you have ${totalOwned})`, 'info');
+    return;
+  }
+  state.conquered[idx] = true;
+  addLog(`Territory conquered: ${t.name}! +${t.rate}/s Contracts`, 'mile');
+  showToast(`${t.emoji} ${t.name} conquered!`, 'mile');
+  renderWorldMap();
 }
 
 // ═══ TICK ═══
@@ -455,20 +514,6 @@ function tick() {
     starvationFlags[p.id] = insightRatio < 0.99;
   }
 
-  // Tier 3: consume Insights, produce Revenue
-  const revProducers = PRODUCERS.filter(p =>
-    p.tier === 3 && state.owned[p.id] > 0 && (!p.hidden || state.treeNodes[2]));
-  let totalRevDemand = revProducers.reduce((s, p) => s + p.consumeRate * state.owned[p.id] * DT, 0);
-  const revRatio = totalRevDemand > 0 ? Math.min(1, state.insights / totalRevDemand) : 1;
-  for (const p of revProducers) {
-    const consume = p.consumeRate * state.owned[p.id] * DT * revRatio;
-    const produce = producerEffectiveRate(p) * DT * revRatio;
-    state.insights -= consume;
-    state.revenue += produce;
-    state.lifetimeRevenue += produce;
-    starvationFlags[p.id] = revRatio < 0.99;
-  }
-
   // Contracts
   const contractsEarned = calcContractsRate() * DT;
   state.contracts += contractsEarned;
@@ -479,6 +524,7 @@ function tick() {
   state.insights   = Math.max(0, state.insights);
 
   checkUpgradeUnlocks();
+  checkAchievements();
   checkMilestones();
   checkPanelUnlocks();
 
@@ -509,7 +555,7 @@ function handleClick(e) {
   const power = clickPower();
   state.dataPoints += power;
   state.lifetimeDP += power;
-  totalClicks++;
+  state.totalClicks++;
   totalClickDP += power;
 
   const el = document.getElementById('click-target');
@@ -533,26 +579,30 @@ function handleClick(e) {
 
 // ═══ BUY PRODUCER ═══
 
-function buyProducer(id) {
+function buyProducer(id, amount) {
   const p = PRODUCERS[id];
-  const cost = producerCost(p);
   const resource = p.costResource || 'dataPoints';
-  if (state[resource] < cost) return;
+  let count = amount === 'max' ? producerMaxAffordable(p) : amount;
+  if (count <= 0) return;
 
   // Quest restrictions
   if (state.inChallenge) {
     const totalOwned = state.owned.reduce((s, n) => s + n, 0);
-    if (state.challengeId === 0 && totalOwned >= 5) {
-      showToast('Quest restriction: Max 5 producers!', 'info'); return;
-    }
-    if (state.challengeId === 4 && p.tier === 3 && state.owned[id] >= 3) {
-      showToast('Quest restriction: Max 3 of each T3 producer!', 'info'); return;
+    if (state.challengeId === 0) {
+      count = Math.min(count, 5 - totalOwned);
+      if (count <= 0) { showToast('Quest restriction: Max 5 producers!', 'info'); return; }
     }
   }
 
-  state[resource] -= cost;
-  state.owned[id]++;
-  addLog(`Hired: ${p.name} (now ${state.owned[id]}) — ${fmt(cost)} ${resourceLabel(resource)}`, 'buy');
+  const totalCost = producerCostN(p, count);
+  if (state[resource] < totalCost) {
+    count = producerMaxAffordable(p);
+    if (count <= 0) return;
+  }
+  const finalCost = producerCostN(p, count);
+  state[resource] -= finalCost;
+  state.owned[id] += count;
+  addLog(`Hired: ${count}× ${p.name} (now ${state.owned[id]}) — ${fmt(finalCost)} ${resourceLabel(resource)}`, 'buy');
   checkUpgradeUnlocks();
 }
 
@@ -594,8 +644,6 @@ function buyTreeNode(id) {
   state.treeNodes[id] = true;
   addLog(`Skill unlocked: ${node.name}`, 'pres');
   showToast(`Permanent: ${node.name}`, 'pres');
-  // Node 2: Platinum Partner — rebuild T2 panel to show Strategic Advisory Firm
-  if (id === 2) buildT2Panel();
   closeNodePopup();
   renderPrestigeTree();
   renderKPI();
@@ -613,15 +661,14 @@ function doPrestige() {
 
   state.dataPoints = 0;
   state.insights = 0;
-  state.revenue = 0;
   state.contracts = 0;
   state.lifetimeDP = 0;
   state.lifetimeInsights = 0;
-  state.lifetimeRevenue = 0;
   state.lifetimeContracts = 0;
   state.owned = new Array(PRODUCERS.length).fill(0);
   state.upgrades = new Array(UPGRADES.length).fill(false);
   state.upgradeVisible = new Array(UPGRADES.length).fill(false);
+  state.conquered = new Array(TERRITORIES.length).fill(false);
   state.worldUpgrades = new Array(WORLD_UPGRADES.length).fill(false);
   state.inChallenge = false;
   state.challengeId = -1;
@@ -716,20 +763,24 @@ function checkQuestGoal() {
 
 // ═══ PANEL UNLOCK SYSTEM ═══
 
+// Unlock order: wm → t2 → quests → prestige (sequential)
+const UNLOCK_ORDER = [
+  { key: 'wm',       test: () => state.lifetimeDP >= 5000,        progressFn: () => `${fmt(state.lifetimeDP)} / 5,000 DP` },
+  { key: 't2',       test: () => state.conquered.every(Boolean),  progressFn: () => `${state.conquered.filter(Boolean).length} / ${TERRITORIES.length} Territories` },
+  { key: 'prestige', test: () => calcRPGain() >= 5,               progressFn: () => `${calcRPGain()} / 5 RP` },
+];
+
 function checkPanelUnlocks() {
-  const checks = [
-    { key: 'wm',      test: () => state.lifetimeDP >= 5000 },
-    { key: 't2',      test: () => state.lifetimeInsights >= 50 },
-    { key: 'quests',  test: () => state.lifetimeContracts > 0 },
-    { key: 'prestige',test: () => calcRPGain() >= 5 },
-  ];
-  for (const c of checks) {
+  for (const c of UNLOCK_ORDER) {
     if (panelsUnlocked.has(c.key)) continue;
     if (c.test()) {
       panelsUnlocked.add(c.key);
       unlockPanelsByKey(c.key);
+      updateLockedPanelVisibility();
+      renderKPI();
     }
   }
+  updateLockedProgress();
 }
 
 function unlockPanelsByKey(key) {
@@ -737,7 +788,6 @@ function unlockPanelsByKey(key) {
     wm:      [{ id: 'panel-wm-upgrades', fn: buildWorldUpgradesPanel },
                { id: 'panel-wm-map',     fn: buildWorldMapPanel }],
     t2:      [{ id: 'panel-t2',          fn: buildT2Panel }],
-    quests:  [{ id: 'panel-quests',      fn: buildQuestsPanel }],
     prestige:[{ id: 'panel-prestige',    fn: buildPrestigeTreePanel }],
   };
   for (const entry of (map[key] || [])) {
@@ -747,6 +797,19 @@ function unlockPanelsByKey(key) {
     el.classList.add('unlocking');
     entry.fn();
     setTimeout(() => el.classList.remove('unlocking'), 500);
+  }
+}
+
+// ═══ ACHIEVEMENT CHECKS ═══
+
+function checkAchievements() {
+  for (let i = 0; i < ACHIEVEMENTS.length; i++) {
+    if (state.achievements[i]) continue;
+    if (ACHIEVEMENTS[i].check()) {
+      state.achievements[i] = true;
+      addLog(`Achievement: ${ACHIEVEMENTS[i].name} — ${ACHIEVEMENTS[i].reward}`, 'mile');
+      showToast(`Achievement: ${ACHIEVEMENTS[i].name}!`, 'mile');
+    }
   }
 }
 
@@ -761,7 +824,7 @@ function checkUpgradeUnlocks() {
     if (c.type === 'owned') {
       unlocked = state.owned[c.producerId] >= c.count;
     } else if (c.type === 'lifetimeEarned') {
-      const map = { dataPoints: state.lifetimeDP, insights: state.lifetimeInsights, revenue: state.lifetimeRevenue };
+      const map = { dataPoints: state.lifetimeDP, insights: state.lifetimeInsights };
       unlocked = (map[c.resource] || 0) >= c.amount;
     }
     if (unlocked) state.upgradeVisible[i] = true;
@@ -775,8 +838,6 @@ const MILESTONES = [
   { id: 'm1', check: () => state.lifetimeDP >= 10000,     msg: '10K Data Points — clients are taking notice.', type: 'mile' },
   { id: 'm2', check: () => state.owned[4] >= 1,           msg: 'First Power BI Dashboard deployed! Insights unlocked.', type: 'mile' },
   { id: 'm3', check: () => state.lifetimeInsights >= 100, msg: '100 Insights generated — the board is impressed.', type: 'mile' },
-  { id: 'm4', check: () => state.owned[7] >= 1,           msg: 'First ML Model in production! Revenue stream opened.', type: 'mile' },
-  { id: 'm5', check: () => state.lifetimeRevenue >= 50,   msg: 'Revenue incoming! The business case is validated.', type: 'mile' },
   { id: 'm6', check: () => calcRPGain() >= 5,             msg: 'Ready for a Fiscal Year Reset. Check the Prestige panel.', type: 'mile' },
   { id: 'm7', check: () => state.prestigeCount >= 1,      msg: 'Year closed. Your reputation precedes you.', type: 'pres' },
   { id: 'm8', check: () => getConqueredSet().size >= 1,   msg: 'First territory conquered! Contracts flowing in.', type: 'mile' },
@@ -851,7 +912,7 @@ function fmtDec(n) {
 }
 
 function resourceLabel(r) {
-  return { dataPoints: 'DP', insights: 'Insights', revenue: 'Revenue', contracts: 'Contracts' }[r] || r;
+  return { dataPoints: 'DP', insights: 'Insights', contracts: 'Contracts' }[r] || r;
 }
 
 // ═══ SPARKLINE ═══
@@ -944,18 +1005,26 @@ function renderKPI() {
   } else if (deltaEl) deltaEl.textContent = '';
   prevDPRate = dpRate;
 
+  // Section-based KPI visibility
+  const kpiMap = [
+    { id: 'kpi-contracts-card', key: 'wm' },
+    { id: 'kpi-ins-card',      key: 't2' },
+    // quests deferred for now
+    { id: 'kpi-rp-card',       key: 'prestige' },
+  ];
+  for (const k of kpiMap) {
+    const el = document.getElementById(k.id);
+    if (el) el.style.display = panelsUnlocked.has(k.key) ? '' : 'none';
+  }
+
+  setText('kpi-contracts-value', fmt(state.contracts));
+  setText('kpi-contracts-rate', `${fmtDec(calcContractsRate())}/s`);
   setText('kpi-ins-value', fmt(state.insights));
-  setText('kpi-rev-value', fmt(state.revenue));
+  setText('kpi-ins-rate', `${fmtDec(calcTotalProduction('insights'))}/s`);
+  const questsDone = state.questsCompleted.filter(Boolean).length;
+  setText('kpi-quests-value', `${questsDone}/${QUESTS.length}`);
   setText('kpi-rp-value', `${state.reputationPoints} RP`);
   setText('kpi-rp-sub', `${state.prestigeCount} reset${state.prestigeCount !== 1 ? 's' : ''}`);
-
-  // Contracts card — show when WM unlocked
-  const contractCard = document.getElementById('kpi-contracts-card');
-  if (contractCard) {
-    if (panelsUnlocked.has('wm')) contractCard.style.display = '';
-    setText('kpi-contracts-value', fmt(state.contracts));
-    setText('kpi-contracts-rate', `${fmtDec(calcContractsRate())}/s`);
-  }
 
   // Click area
   setText('click-value', fmt(state.dataPoints));
@@ -967,30 +1036,30 @@ function renderKPI() {
 function buildKPIBar() {
   const bar = document.getElementById('kpi-bar');
   bar.innerHTML = `
-    <div class="kpi-card">
+    <div class="kpi-card" id="kpi-dp-card">
       <div class="kpi-label">Data Points</div>
       <div class="kpi-value blue" id="kpi-dp-value">0</div>
       <div class="kpi-sub"><span id="kpi-dp-rate">0 DP/s</span> <span id="kpi-dp-delta"></span></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Insights</div>
-      <div class="kpi-value teal" id="kpi-ins-value">0</div>
-      <div class="kpi-sub">Processed analytics</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Revenue</div>
-      <div class="kpi-value" id="kpi-rev-value">0</div>
-      <div class="kpi-sub">Enterprise value</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Reputation</div>
-      <div class="kpi-value gold" id="kpi-rp-value">0 RP</div>
-      <div class="kpi-sub" id="kpi-rp-sub">0 resets</div>
     </div>
     <div class="kpi-card" id="kpi-contracts-card" style="display:none">
       <div class="kpi-label">Contracts</div>
       <div class="kpi-value amber" id="kpi-contracts-value">0</div>
       <div class="kpi-sub" id="kpi-contracts-rate">0/s</div>
+    </div>
+    <div class="kpi-card" id="kpi-ins-card" style="display:none">
+      <div class="kpi-label">Insights</div>
+      <div class="kpi-value teal" id="kpi-ins-value">0</div>
+      <div class="kpi-sub" id="kpi-ins-rate">0/s</div>
+    </div>
+    <div class="kpi-card" id="kpi-quests-card" style="display:none">
+      <div class="kpi-label">Quests</div>
+      <div class="kpi-value amber" id="kpi-quests-value">0/5</div>
+      <div class="kpi-sub">Completed</div>
+    </div>
+    <div class="kpi-card" id="kpi-rp-card" style="display:none">
+      <div class="kpi-label">Reputation</div>
+      <div class="kpi-value gold" id="kpi-rp-value">0 RP</div>
+      <div class="kpi-sub" id="kpi-rp-sub">0 resets</div>
     </div>
   `;
 }
@@ -1000,13 +1069,13 @@ function buildDashboard() {
   dash.innerHTML = '';
 
   const panels = [
-    { id: 'panel-t1',          unlock: 't1',      fn: buildT1Panel,          hint: '' },
-    { id: 'panel-click',       unlock: 'click',   fn: buildClickPanel,       hint: '' },
-    { id: 'panel-quests',      unlock: 'quests',  fn: buildQuestsPanel,      hint: 'Earn your first Contract' },
-    { id: 'panel-prestige',    unlock: 'prestige',fn: buildPrestigeTreePanel,hint: 'Need ~5 RP from Revenue' },
-    { id: 'panel-wm-upgrades', unlock: 'wm',      fn: buildWorldUpgradesPanel,hint: 'Reach 5,000 lifetime DP' },
-    { id: 'panel-wm-map',      unlock: 'wm',      fn: buildWorldMapPanel,    hint: 'Reach 5,000 lifetime DP' },
-    { id: 'panel-t2',          unlock: 't2',      fn: buildT2Panel,          hint: 'Earn 50 lifetime Insights' },
+    { id: 'panel-t1',          unlock: 't1',      fn: buildT1Panel },
+    { id: 'panel-click',       unlock: 'click',   fn: buildClickPanel },
+    { id: 'panel-quests',      unlock: null,       fn: null },
+    { id: 'panel-prestige',    unlock: 'prestige',fn: buildPrestigeTreePanel },
+    { id: 'panel-wm-upgrades', unlock: 'wm',      fn: buildWorldUpgradesPanel },
+    { id: 'panel-wm-map',      unlock: 'wm',      fn: buildWorldMapPanel },
+    { id: 'panel-t2',          unlock: 't2',      fn: buildT2Panel },
   ];
 
   for (const p of panels) {
@@ -1014,21 +1083,67 @@ function buildDashboard() {
     el.className = 'dash-panel';
     el.id = p.id;
     dash.appendChild(el);
-    if (panelsUnlocked.has(p.unlock)) {
+    if (p.unlock === null) {
+      el.classList.add('hidden-panel');
+    } else if (panelsUnlocked.has(p.unlock)) {
       p.fn();
-    } else {
-      buildLockedPlaceholder(el, p.hint);
+    }
+  }
+  updateLockedPanelVisibility();
+}
+
+function getNextUnlockKey() {
+  for (const c of UNLOCK_ORDER) {
+    if (!panelsUnlocked.has(c.key)) return c.key;
+  }
+  return null;
+}
+
+function updateLockedPanelVisibility() {
+  const nextKey = getNextUnlockKey();
+  const panelUnlockMap = {
+    wm:      ['panel-wm-upgrades', 'panel-wm-map'],
+    t2:      ['panel-t2'],
+    prestige:['panel-prestige'],
+  };
+
+  for (const [key, ids] of Object.entries(panelUnlockMap)) {
+    if (panelsUnlocked.has(key)) continue;
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      if (key === nextKey) {
+        el.classList.remove('hidden-panel');
+        if (!el.querySelector('.locked-placeholder')) {
+          buildLockedPlaceholder(el, key);
+        }
+      } else {
+        el.classList.add('hidden-panel');
+        el.innerHTML = '';
+      }
     }
   }
 }
 
-function buildLockedPlaceholder(el, hint) {
+function buildLockedPlaceholder(el, unlockKey) {
+  const entry = UNLOCK_ORDER.find(c => c.key === unlockKey);
+  const progress = entry ? entry.progressFn() : '';
   el.innerHTML = `
     <div class="locked-placeholder">
-      <div class="locked-icon">🔒</div>
-      <div class="locked-hint">${hint}</div>
+      <div class="locked-progress">${progress}</div>
     </div>
   `;
+}
+
+function updateLockedProgress() {
+  const nextKey = getNextUnlockKey();
+  if (!nextKey) return;
+  const entry = UNLOCK_ORDER.find(c => c.key === nextKey);
+  if (!entry) return;
+  const els = document.querySelectorAll('.locked-progress');
+  for (const el of els) {
+    el.textContent = entry.progressFn();
+  }
 }
 
 // ═══ BUILD: T1 PANEL ═══
@@ -1051,7 +1166,10 @@ function buildT1Panel() {
         <div id="t1-prod-list"></div>
       </div>
       <div class="panel-sub" id="t1-upg-sub" style="display:none">
-        <div class="section-divider">Upgrades</div>
+        <div class="sub-header">
+          <span class="section-divider">Upgrades</span>
+          <button class="filter-btn" id="t1-filter">All</button>
+        </div>
         <div id="t1-upg-list"></div>
       </div>
     </div>
@@ -1065,6 +1183,7 @@ function buildT1Panel() {
 
   // Upgrade pills
   buildUpgradePillsInto('t1-upg-list', t1UpgradeGroups);
+  document.getElementById('t1-filter').addEventListener('click', () => cycleUpgradeFilter('t1-upg-list', 't1-filter'));
 }
 
 function renderT1Panel() {
@@ -1072,6 +1191,7 @@ function renderT1Panel() {
   const t1 = PRODUCERS.filter(p => p.tier === 1);
   for (const p of t1) updateProducerRow(p);
   updateUpgradePills('t1-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-t1'));
+  applyUpgradeFilter('t1-upg-list');
   // Show upgrades sub-container if any are visible
   const t1UpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-t1').ids.some(i => state.upgradeVisible[i]);
   const upgSub = document.getElementById('t1-upg-sub');
@@ -1086,46 +1206,40 @@ function buildT2Panel() {
 
   el.innerHTML = `
     <div class="panel-header">
-      <span class="panel-title">T2 / T3 Producers</span>
-      <span class="panel-badge teal">Insights & Revenue</span>
+      <span class="panel-title">T2 Producers</span>
+      <span class="panel-badge teal">Insights</span>
     </div>
     <div class="panel-body" id="t2-body">
       <div class="panel-sub">
         <div class="section-divider">Tier 2 — Analytics</div>
         <div id="t2-prod-list"></div>
-        <div class="section-divider">Tier 3 — Revenue</div>
-        <div id="t3-prod-list"></div>
       </div>
       <div class="panel-sub" id="t2-upg-sub" style="display:none">
-        <div class="section-divider">Upgrades</div>
+        <div class="sub-header">
+          <span class="section-divider">Upgrades</span>
+          <button class="filter-btn" id="t2-filter">All</button>
+        </div>
         <div id="t2-upg-list"></div>
-        <div id="t3-upg-list"></div>
       </div>
     </div>
   `;
 
   const t2List = document.getElementById('t2-prod-list');
-  const t3List = document.getElementById('t3-prod-list');
-
   for (const p of PRODUCERS.filter(q => q.tier === 2)) {
     t2List.appendChild(makeProducerRow(p));
   }
-  for (const p of PRODUCERS.filter(q => q.tier === 3 && (!q.hidden || state.treeNodes[2]))) {
-    t3List.appendChild(makeProducerRow(p));
-  }
 
   buildUpgradePillsInto('t2-upg-list', UPGRADE_GROUPS.filter(g => g.id === 'grp-t2'));
-  buildUpgradePillsInto('t3-upg-list', UPGRADE_GROUPS.filter(g => g.id === 'grp-t3'));
+  document.getElementById('t2-filter').addEventListener('click', () => cycleUpgradeFilter('t2-upg-list', 't2-filter'));
 }
 
 function renderT2Panel() {
   if (!document.getElementById('t2-prod-list')) return;
-  const t23 = PRODUCERS.filter(p => (p.tier === 2 || p.tier === 3) && (!p.hidden || state.treeNodes[2]));
-  for (const p of t23) updateProducerRow(p);
+  const t2 = PRODUCERS.filter(p => p.tier === 2);
+  for (const p of t2) updateProducerRow(p);
   updateUpgradePills('t2-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-t2'));
-  updateUpgradePills('t3-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-t3'));
-  const anyUpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-t2').ids.some(i => state.upgradeVisible[i])
-    || UPGRADE_GROUPS.find(g => g.id === 'grp-t3').ids.some(i => state.upgradeVisible[i]);
+  applyUpgradeFilter('t2-upg-list');
+  const anyUpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-t2').ids.some(i => state.upgradeVisible[i]);
   const upgSub = document.getElementById('t2-upg-sub');
   if (upgSub) upgSub.style.display = anyUpgVisible ? '' : 'none';
 }
@@ -1138,7 +1252,7 @@ function makeProducerRow(p) {
   const canAfford = state[resource] >= cost;
 
   const row = document.createElement('div');
-  row.className = `prod-row${canAfford ? '' : ' unaffordable'}`;
+  row.className = 'prod-row';
   row.id = `prod-row-${p.id}`;
   row.innerHTML = `
     <div class="prod-emoji">${p.emoji}</div>
@@ -1147,14 +1261,26 @@ function makeProducerRow(p) {
         ${p.name}
         <span class="starvation-badge" id="starv-${p.id}" style="display:none">Starved</span>
       </div>
-      <div class="prod-subline" id="prod-sub-${p.id}">${fmtDec(p.baseProduction)} ${resourceLabel(p.produces)}/s base</div>
+      <div class="prod-subline" id="prod-sub-${p.id}">+${fmtDec(p.baseProduction)} ${resourceLabel(p.produces)}/s each</div>
     </div>
     <div class="prod-right">
-      <span class="owned-badge" id="prod-badge-${p.id}">${state.owned[p.id]}</span>
       <span class="prod-cost ${canAfford ? 'affordable' : 'cant-afford'}" id="prod-cost-${p.id}">${fmt(cost)} ${resourceLabel(resource)}</span>
+      <div class="buy-btns" id="buy-btns-${p.id}">
+        <button class="buy-btn" data-id="${p.id}" data-n="1">×1</button>
+        <button class="buy-btn" data-id="${p.id}" data-n="10">×10</button>
+        <button class="buy-btn" data-id="${p.id}" data-n="100">×100</button>
+        <button class="buy-btn" data-id="${p.id}" data-n="max">MAX</button>
+      </div>
     </div>
+    <span class="owned-badge" id="prod-badge-${p.id}">${state.owned[p.id]}</span>
   `;
-  row.addEventListener('click', () => buyProducer(p.id));
+  row.querySelectorAll('.buy-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const n = btn.dataset.n;
+      buyProducer(p.id, n === 'max' ? 'max' : parseInt(n));
+    });
+  });
   return row;
 }
 
@@ -1166,8 +1292,6 @@ function updateProducerRow(p) {
   const cost = producerCost(p);
   const canAfford = state[resource] >= cost;
 
-  row.classList.toggle('unaffordable', !canAfford);
-
   const costEl = document.getElementById(`prod-cost-${p.id}`);
   if (costEl) {
     costEl.textContent = `${fmt(cost)} ${resourceLabel(resource)}`;
@@ -1177,16 +1301,30 @@ function updateProducerRow(p) {
   const badge = document.getElementById(`prod-badge-${p.id}`);
   if (badge) badge.textContent = state.owned[p.id];
 
+  // Update buy button affordability
+  const btns = document.getElementById(`buy-btns-${p.id}`);
+  if (btns) {
+    btns.querySelectorAll('.buy-btn').forEach(btn => {
+      const n = btn.dataset.n;
+      const count = n === 'max' ? producerMaxAffordable(p) : parseInt(n);
+      const affordable = count > 0 && state[resource] >= producerCostN(p, Math.min(count, n === 'max' ? count : parseInt(n)));
+      btn.classList.toggle('cant-buy', !affordable);
+    });
+  }
+
   const starv = document.getElementById(`starv-${p.id}`);
   if (starv) starv.style.display = starvationFlags[p.id] ? 'inline-block' : 'none';
 
   const sub = document.getElementById(`prod-sub-${p.id}`);
-  if (sub && state.owned[p.id] > 0) {
-    const totalRate = producerEffectiveRate(p);
-    const perUnit = totalRate / state.owned[p.id];
-    const typeTotal = calcTotalProduction(p.produces);
-    const pct = typeTotal > 0 ? (totalRate / typeTotal * 100) : 0;
-    sub.textContent = `${fmtDec(perUnit)}/s ea · ${fmtDec(totalRate)}/s total · ${pct.toFixed(0)}%`;
+  if (sub) {
+    if (state.owned[p.id] > 0) {
+      const totalRate = producerEffectiveRate(p);
+      const typeTotal = calcTotalProduction(p.produces);
+      const pct = typeTotal > 0 ? (totalRate / typeTotal * 100) : 0;
+      sub.textContent = `${fmtDec(totalRate)} ${resourceLabel(p.produces)}/s · ${pct.toFixed(0)}%`;
+    } else {
+      sub.textContent = `+${fmtDec(p.baseProduction)} ${resourceLabel(p.produces)}/s each`;
+    }
   }
 }
 
@@ -1197,7 +1335,8 @@ function buildUpgradePillsInto(containerId, groups) {
   if (!container) return;
   container.innerHTML = '';
   for (const grp of groups) {
-    for (const i of grp.ids) {
+    const sortedIds = [...grp.ids].sort((a, b) => UPGRADES[a].cost.amount - UPGRADES[b].cost.amount);
+    for (const i of sortedIds) {
       const u = UPGRADES[i];
       const purchased = state.upgrades[i];
       const resource = u.cost.resource;
@@ -1249,6 +1388,34 @@ function updateUpgradePills(containerId, grp) {
   }
 }
 
+// ═══ UPGRADE FILTER ═══
+
+const upgradeFilters = {}; // listId → 'all' | 'bought' | 'available'
+
+function cycleUpgradeFilter(listId, btnId) {
+  const modes = ['all', 'available', 'bought'];
+  const current = upgradeFilters[listId] || 'all';
+  const next = modes[(modes.indexOf(current) + 1) % modes.length];
+  upgradeFilters[listId] = next;
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    btn.textContent = next === 'all' ? 'All' : next === 'available' ? 'On Sale' : 'Bought';
+  }
+  applyUpgradeFilter(listId);
+}
+
+function applyUpgradeFilter(listId) {
+  const container = document.getElementById(listId);
+  if (!container) return;
+  const mode = upgradeFilters[listId] || 'all';
+  container.querySelectorAll('.upg-pill').forEach(el => {
+    const purchased = el.classList.contains('purchased');
+    if (mode === 'all') el.style.display = '';
+    else if (mode === 'bought') el.style.display = purchased ? '' : 'none';
+    else if (mode === 'available') el.style.display = purchased ? 'none' : '';
+  });
+}
+
 // ═══ BUILD: CLICK/INGEST PANEL ═══
 
 function buildClickPanel() {
@@ -1262,33 +1429,34 @@ function buildClickPanel() {
       <span class="panel-badge blue">Click</span>
     </div>
     <div class="panel-body">
-      <div class="panel-sub">
-        <div id="click-target">
-          <div id="click-label">Click to Collect Data Points</div>
-          <div id="click-value">0</div>
-          <div id="click-rate">0 DP/s · Click: +1</div>
-        </div>
+      <div class="panel-sub" id="click-target">
+        <div id="click-label">Click to Collect Data Points</div>
+        <div id="click-value">0</div>
+        <div id="click-rate">0 DP/s · Click: +1</div>
       </div>
-      <div class="panel-sub">
-        <div id="sparkline-wrap">
-          <div id="sparkline-title">Data Points — Live Feed</div>
-          <canvas id="sparkline"></canvas>
-        </div>
+      <div class="panel-sub" id="sparkline-wrap">
+        <div id="sparkline-title">Data Points — Live Feed</div>
+        <canvas id="sparkline"></canvas>
       </div>
       <div class="panel-sub" id="click-upg-sub" style="display:none">
-        <div class="section-divider">Click Upgrades</div>
+        <div class="sub-header">
+          <span class="section-divider">Click Upgrades</span>
+          <button class="filter-btn" id="click-filter">All</button>
+        </div>
         <div id="click-upg-list"></div>
       </div>
     </div>
   `;
   document.getElementById('click-target').addEventListener('click', handleClick);
   buildUpgradePillsInto('click-upg-list', clickUpgradeGroups);
+  document.getElementById('click-filter').addEventListener('click', () => cycleUpgradeFilter('click-upg-list', 'click-filter'));
   resizeSparkline();
   window.addEventListener('resize', resizeSparkline);
 }
 
 function renderClickPanel() {
   updateUpgradePills('click-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-click'));
+  applyUpgradeFilter('click-upg-list');
   const clkUpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-click').ids.some(i => state.upgradeVisible[i]);
   const upgSub = document.getElementById('click-upg-sub');
   if (upgSub) upgSub.style.display = clkUpgVisible ? '' : 'none';
@@ -1303,13 +1471,16 @@ function buildWorldMapPanel() {
   const conquered = getConqueredSet();
   const rate = calcContractsRate();
 
+  const totalOwned = state.owned.reduce((s, n) => s + n, 0);
+
   const paths = TERRITORIES.map(t => {
     const isConquered = conquered.has(t.id);
+    const canConquer = !isConquered && totalOwned >= t.need;
     return `<path id="territory-${t.id}" d="${t.d}"
-      class="${isConquered ? 'conquered' : 'locked'}"
-      fill="${isConquered ? t.color : 'var(--text-muted)'}"
-      data-territory="${t.id}">
-      <title>${t.name} — ${isConquered ? `${t.rate}/s Contracts` : `Need ${t.need} producers`}</title>
+      class="${isConquered ? 'conquered' : (canConquer ? 'conquerable' : 'locked')}"
+      fill="${isConquered ? t.color : (canConquer ? t.color : 'var(--text-muted)')}"
+      data-idx="${t.idx}">
+      <title>${t.name} — ${isConquered ? `${t.rate}/s Contracts` : `Need ${t.need} producers (${totalOwned})`}</title>
     </path>`;
   }).join('');
 
@@ -1331,6 +1502,12 @@ function buildWorldMapPanel() {
     </div>
     <div class="wm-legend" id="wm-legend">${legendItems}</div>
   `;
+
+  // Click handlers for conquest
+  for (const t of TERRITORIES) {
+    const path = document.getElementById(`territory-${t.id}`);
+    if (path) path.addEventListener('click', () => conquerTerritory(t.idx));
+  }
 }
 
 function renderWorldMap() {
@@ -1338,17 +1515,19 @@ function renderWorldMap() {
   if (!svg) return;
 
   const conquered = getConqueredSet();
+  const totalOwned = state.owned.reduce((s, n) => s + n, 0);
   let changed = false;
 
   for (const t of TERRITORIES) {
     const path = document.getElementById(`territory-${t.id}`);
     if (!path) continue;
     const isConquered = conquered.has(t.id);
-    const wasConquered = path.classList.contains('conquered');
-    if (isConquered !== wasConquered) {
-      path.classList.toggle('conquered', isConquered);
-      path.classList.toggle('locked', !isConquered);
-      path.setAttribute('fill', isConquered ? t.color : 'var(--text-muted)');
+    const canConquer = !isConquered && totalOwned >= t.need;
+    const prevClass = path.getAttribute('class');
+    const newClass = isConquered ? 'conquered' : (canConquer ? 'conquerable' : 'locked');
+    if (prevClass !== newClass) {
+      path.setAttribute('class', newClass);
+      path.setAttribute('fill', isConquered ? t.color : (canConquer ? t.color : 'var(--text-muted)'));
       changed = true;
     }
   }
@@ -1499,7 +1678,7 @@ function buildPrestigeTreePanel() {
       <div id="rp-counter">${state.reputationPoints}</div>
       <div id="rp-counter-label">Reputation Points</div>
       <button id="prestige-btn" ${eligible ? '' : 'disabled'}>Close Fiscal Year</button>
-      <div id="prestige-next">${eligible ? `Next reset: +${rpGain} RP` : 'Need more Revenue'}</div>
+      <div id="prestige-next">${eligible ? `Next reset: +${rpGain} RP` : 'Need more Insights'}</div>
     </div>
     <div id="prestige-tree-wrap">
       <svg id="tree-svg" viewBox="0 0 180 390" width="100%"></svg>
@@ -1584,7 +1763,7 @@ function renderPrestigeTree() {
   if (btn) btn.disabled = !eligible;
 
   const nextEl = document.getElementById('prestige-next');
-  if (nextEl) nextEl.textContent = eligible ? `Next reset: +${rpGain} RP` : 'Need more Revenue';
+  if (nextEl) nextEl.textContent = eligible ? `Next reset: +${rpGain} RP` : 'Need more Insights';
 
   for (const node of TREE_NODES_DEF) {
     const circle = document.getElementById(`tree-circle-${node.id}`);
@@ -1680,6 +1859,57 @@ function onDocClickClosePopup(e) {
   }
 }
 
+// ═══ ACHIEVEMENTS MODAL ═══
+
+function buildAchievementsModal() {
+  const existing = document.getElementById('achieve-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'achieve-overlay';
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div id="achieve-modal">
+      <div id="achieve-header">
+        <span id="achieve-title">Achievements</span>
+        <span id="achieve-count"></span>
+        <button id="achieve-close">✕</button>
+      </div>
+      <div id="achieve-body"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#achieve-close').addEventListener('click', closeAchievements);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeAchievements(); });
+}
+
+function openAchievements() {
+  renderAchievementsBody();
+  document.getElementById('achieve-overlay').classList.add('open');
+}
+
+function closeAchievements() {
+  document.getElementById('achieve-overlay').classList.remove('open');
+}
+
+function renderAchievementsBody() {
+  const body = document.getElementById('achieve-body');
+  if (!body) return;
+  const earned = state.achievements.filter(Boolean).length;
+  setText('achieve-count', `${earned} / ${ACHIEVEMENTS.length}`);
+  body.innerHTML = ACHIEVEMENTS.map(a => {
+    const done = state.achievements[a.id];
+    return `<div class="achieve-row ${done ? 'done' : ''}">
+      <span class="achieve-icon">${done ? '✓' : '○'}</span>
+      <div class="achieve-info">
+        <div class="achieve-name">${a.name}</div>
+        <div class="achieve-desc">${a.desc}</div>
+      </div>
+      <div class="achieve-reward">${a.reward}</div>
+    </div>`;
+  }).join('');
+}
+
 // ═══ ACTIVITY LOG MODAL ═══
 
 function buildActivityLogModal() {
@@ -1763,10 +1993,8 @@ function renderStatusBody() {
   const sessionMs = Date.now() - sessionStart;
   const dpRate  = calcTotalProduction('dataPoints');
   const insRate = calcTotalProduction('insights');
-  const revRate = calcTotalProduction('revenue');
   const t1Rate  = PRODUCERS.filter(p => p.tier === 1).reduce((s, p) => s + producerEffectiveRate(p), 0);
   const t2Rate  = PRODUCERS.filter(p => p.tier === 2).reduce((s, p) => s + producerEffectiveRate(p), 0);
-  const t3Rate  = PRODUCERS.filter(p => p.tier === 3 && (!p.hidden || state.treeNodes[2])).reduce((s, p) => s + producerEffectiveRate(p), 0);
   const totalOwned = state.owned.reduce((s, n) => s + n, 0);
   const upgBought = state.upgrades.filter(Boolean).length;
   const rpGain = calcRPGain();
@@ -1774,7 +2002,7 @@ function renderStatusBody() {
   const conquered = getConqueredSet();
 
   const producerRows = PRODUCERS
-    .filter(p => (!p.hidden || state.treeNodes[2]) && state.owned[p.id] > 0)
+    .filter(p => state.owned[p.id] > 0)
     .map(p => `<div class="status-row">
       <span class="status-row-label">${p.emoji} ${p.name}</span>
       <span class="status-row-value">${state.owned[p.id]} owned · ${fmtDec(producerEffectiveRate(p))}/s</span>
@@ -1799,7 +2027,6 @@ function renderStatusBody() {
       <div class="status-section-title">All-Time Production</div>
       <div class="status-row"><span class="status-row-label">Data Points generated</span><span class="status-row-value accent">${fmt(state.lifetimeDP)}</span></div>
       <div class="status-row"><span class="status-row-label">Insights generated</span><span class="status-row-value teal">${fmt(state.lifetimeInsights)}</span></div>
-      <div class="status-row"><span class="status-row-label">Revenue generated</span><span class="status-row-value">${fmt(state.lifetimeRevenue)}</span></div>
       <div class="status-row"><span class="status-row-label">Contracts earned</span><span class="status-row-value">${fmt(state.lifetimeContracts)}</span></div>
     </div>
 
@@ -1809,14 +2036,12 @@ function renderStatusBody() {
       <div class="status-row"><span class="status-row-label">  ↳ Tier 1 contribution</span><span class="status-row-value">${fmtDec(t1Rate)}/s</span></div>
       <div class="status-row"><span class="status-row-label">Insights / s</span><span class="status-row-value teal">${fmtDec(insRate)}</span></div>
       <div class="status-row"><span class="status-row-label">  ↳ Tier 2 contribution</span><span class="status-row-value">${fmtDec(t2Rate)}/s</span></div>
-      <div class="status-row"><span class="status-row-label">Revenue / s</span><span class="status-row-value">${fmtDec(revRate)}</span></div>
-      <div class="status-row"><span class="status-row-label">  ↳ Tier 3 contribution</span><span class="status-row-value">${fmtDec(t3Rate)}/s</span></div>
       <div class="status-row"><span class="status-row-label">Contracts / s</span><span class="status-row-value">${fmtDec(calcContractsRate())}</span></div>
     </div>
 
     <div class="status-section">
       <div class="status-section-title">Click Stats</div>
-      <div class="status-row"><span class="status-row-label">Total clicks this session</span><span class="status-row-value">${totalClicks.toLocaleString()}</span></div>
+      <div class="status-row"><span class="status-row-label">Total clicks this session</span><span class="status-row-value">${state.totalClicks.toLocaleString()}</span></div>
       <div class="status-row"><span class="status-row-label">DP earned from clicks</span><span class="status-row-value accent">${fmt(totalClickDP)}</span></div>
       <div class="status-row"><span class="status-row-label">Current click power</span><span class="status-row-value">+${fmt(clickPower())} DP</span></div>
     </div>
@@ -1987,6 +2212,7 @@ function setText(id, text) {
 function buildAll() {
   buildKPIBar();
   buildDashboard();
+  buildAchievementsModal();
   buildActivityLogModal();
   buildStatusModal();
   buildSettingsModal();
@@ -2000,6 +2226,7 @@ function buildAll() {
   renderActivityLog();
 
   // Wire up top bar buttons
+  document.getElementById('achieve-btn').addEventListener('click', openAchievements);
   document.getElementById('log-btn').addEventListener('click', openActivityLog);
   document.getElementById('status-btn').addEventListener('click', openStatus);
   document.getElementById('settings-btn').addEventListener('click', openSettings);
