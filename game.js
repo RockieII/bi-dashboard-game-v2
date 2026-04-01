@@ -21,11 +21,11 @@ const PRODUCERS = [
     baseCost: 12000,  costMult: 1.13, baseProduction: 20,   produces: 'dataPoints' },
   // Tier 2 — produce Insights/s (passive multiplier to DP, costs DP to buy)
   { id: 4, tier: 2, name: 'Power BI Dashboard', emoji: '📈', desc: 'Self-service analytics — passive DP multiplier.',
-    baseCost: 1000000,    costMult: 1.25, baseProduction: 0.001, produces: 'insights' },
+    baseCost: 1e9,        costMult: 1.3,  baseProduction: 0.001, produces: 'insights' },
   { id: 5, tier: 2, name: 'Data Warehouse',     emoji: '🏛️', desc: 'Centralised analytical store — stronger multiplier.',
-    baseCost: 15000000,   costMult: 1.25, baseProduction: 0.01,  produces: 'insights' },
+    baseCost: 1e11,       costMult: 1.3,  baseProduction: 0.01,  produces: 'insights' },
   { id: 6, tier: 2, name: 'Data Lake',           emoji: '🌊', desc: 'Petabyte-scale storage — major multiplier.',
-    baseCost: 200000000,  costMult: 1.25, baseProduction: 0.05,  produces: 'insights' },
+    baseCost: 1e13,       costMult: 1.3,  baseProduction: 0.05,  produces: 'insights' },
 ];
 
 const UPGRADES = [
@@ -58,19 +58,19 @@ const UPGRADES = [
     cost: { resource: 'dataPoints', amount: 4000 },   effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
   { id: 9,  name: 'Star Schema Design',    desc: 'Power BI Dashboards 2× production.',
     unlock: { type: 'owned', producerId: 4, count: 1 },
-    cost: { resource: 'dataPoints', amount: 1500000 },    effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 5e9 },        effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
   { id: 10, name: 'Row-Level Security',    desc: 'Power BI Dashboards 2× production.',
     unlock: { type: 'owned', producerId: 4, count: 5 },
-    cost: { resource: 'dataPoints', amount: 8000000 },    effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 5e10 },       effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
   { id: 11, name: 'Columnar Storage',      desc: 'Data Warehouses 2× production.',
     unlock: { type: 'owned', producerId: 5, count: 1 },
-    cost: { resource: 'dataPoints', amount: 25000000 },   effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 5e11 },       effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
   { id: 12, name: 'Partitioning Strategy', desc: 'Data Warehouses 2× production.',
     unlock: { type: 'owned', producerId: 5, count: 5 },
-    cost: { resource: 'dataPoints', amount: 100000000 },  effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 5e12 },       effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
   { id: 13, name: 'Delta Lake Format',     desc: 'Data Lakes 2× production.',
     unlock: { type: 'owned', producerId: 6, count: 1 },
-    cost: { resource: 'dataPoints', amount: 300000000 },  effect: { type: 'producerMultiplier', producerId: 6, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 5e13 },       effect: { type: 'producerMultiplier', producerId: 6, multiplier: 2 } },
   // Click upgrades (ids 14-18)
   { id: 14, name: 'Touch Typing',          desc: 'Click power 2×.',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 10 },
@@ -128,25 +128,25 @@ const UPGRADES = [
   // Additional T2 upgrades (ids 26-32)
   { id: 26, name: 'Advanced DAX',          desc: 'Power BI Dashboards 3× production.',
     unlock: { type: 'owned', producerId: 4, count: 15 },
-    cost: { resource: 'dataPoints', amount: 30000000 },   effect: { type: 'producerMultiplier', producerId: 4, multiplier: 3 } },
+    cost: { resource: 'dataPoints', amount: 1e11 },       effect: { type: 'producerMultiplier', producerId: 4, multiplier: 3 } },
   { id: 27, name: 'Snowflake Migration',   desc: 'Data Warehouses 3× production.',
     unlock: { type: 'owned', producerId: 5, count: 10 },
-    cost: { resource: 'dataPoints', amount: 200000000 },  effect: { type: 'producerMultiplier', producerId: 5, multiplier: 3 } },
+    cost: { resource: 'dataPoints', amount: 1e13 },       effect: { type: 'producerMultiplier', producerId: 5, multiplier: 3 } },
   { id: 28, name: 'Lakehouse Architecture',desc: 'Data Lakes 3× production.',
     unlock: { type: 'owned', producerId: 6, count: 5 },
-    cost: { resource: 'dataPoints', amount: 1000000000 }, effect: { type: 'producerMultiplier', producerId: 6, multiplier: 3 } },
+    cost: { resource: 'dataPoints', amount: 1e15 },       effect: { type: 'producerMultiplier', producerId: 6, multiplier: 3 } },
   { id: 29, name: 'DP Accelerator',        desc: 'All T1 producers 2× production.',
-    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 5000000 },
-    cost: { resource: 'dataPoints', amount: 5000000 },    effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 1e10 },
+    cost: { resource: 'dataPoints', amount: 1e10 },       effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
   { id: 30, name: 'Contract Optimizer',    desc: 'Contracts rate ×2.',
-    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 20000000 },
-    cost: { resource: 'dataPoints', amount: 15000000 },   effect: { type: 'contractsMultiplier', multiplier: 2 } },
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 5e10 },
+    cost: { resource: 'dataPoints', amount: 5e10 },       effect: { type: 'contractsMultiplier', multiplier: 2 } },
   { id: 31, name: 'Insight Analytics',     desc: 'All T2 producers 2× production.',
-    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 100000000 },
-    cost: { resource: 'dataPoints', amount: 80000000 },   effect: { type: 'allTierMultiplier', tier: 2, multiplier: 2 } },
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 1e12 },
+    cost: { resource: 'dataPoints', amount: 1e12 },       effect: { type: 'allTierMultiplier', tier: 2, multiplier: 2 } },
   { id: 32, name: 'Enterprise Data Fabric',desc: 'All producers 2× production.',
-    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 500000000 },
-    cost: { resource: 'dataPoints', amount: 500000000 },  effect: { type: 'allMultiplier', multiplier: 2 } },
+    unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 1e14 },
+    cost: { resource: 'dataPoints', amount: 1e14 },       effect: { type: 'allMultiplier', multiplier: 2 } },
 ];
 
 // Lookup maps — use these instead of UPGRADES[id] to decouple id from array index
@@ -904,7 +904,7 @@ function checkQuestGoal() {
 // ready: prerequisite to show the locked panel as purchasable (or auto-unlock if no cost)
 const UNLOCK_ORDER = [
   { key: 'wm',       cost: 100000, ready: () => true,                           progressFn: () => `${fmt(state.dataPoints)} / ${fmt(100000)} DP`,  label: 'Unlock World Map' },
-  { key: 't2',       cost: 500000, ready: () => state.conquered.every(Boolean), progressFn: () => `${state.conquered.filter(Boolean).length} / ${TERRITORIES.length} Territories`, label: 'Unlock Tier 2' },
+  { key: 't2',       cost: 1e9,    ready: () => state.conquered.every(Boolean), progressFn: () => `${state.conquered.filter(Boolean).length} / ${TERRITORIES.length} Territories`, label: 'Unlock Tier 2' },
   { key: 'prestige', cost: null,   ready: () => calcRPGain() >= 5,              progressFn: () => `${calcRPGain()} / 5 RP`, label: 'Prestige' },
 ];
 
