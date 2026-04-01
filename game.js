@@ -19,13 +19,13 @@ const PRODUCERS = [
     baseCost: 1100,   costMult: 1.13, baseProduction: 4,    produces: 'dataPoints' },
   { id: 3, tier: 1, name: 'Data Catalog',   emoji: '📁', desc: 'Classifies and indexes all data assets centrally.',
     baseCost: 12000,  costMult: 1.13, baseProduction: 20,   produces: 'dataPoints' },
-  // Tier 2 — consume Data Points, produce Insights/s
-  { id: 4, tier: 2, name: 'Power BI Dashboard', emoji: '📈', desc: 'Self-service analytics for business users.',
-    baseCost: 8000,   costMult: 1.13, baseProduction: 0.2,  produces: 'insights',   consumeRate: 1,  consumeResource: 'dataPoints' },
-  { id: 5, tier: 2, name: 'Data Warehouse',     emoji: '🏛️', desc: 'Centralised analytical store (Kimball schema).',
-    baseCost: 75000,  costMult: 1.13, baseProduction: 1.5,  produces: 'insights',   consumeRate: 5,  consumeResource: 'dataPoints' },
-  { id: 6, tier: 2, name: 'Data Lake',           emoji: '🌊', desc: 'Schema-on-read blob storage at petabyte scale.',
-    baseCost: 500000, costMult: 1.13, baseProduction: 8,    produces: 'insights',   consumeRate: 20, consumeResource: 'dataPoints' },
+  // Tier 2 — produce Insights/s (passive multiplier to DP, costs DP to buy)
+  { id: 4, tier: 2, name: 'Power BI Dashboard', emoji: '📈', desc: 'Self-service analytics — passive DP multiplier.',
+    baseCost: 500000,   costMult: 1.15, baseProduction: 0.001, produces: 'insights' },
+  { id: 5, tier: 2, name: 'Data Warehouse',     emoji: '🏛️', desc: 'Centralised analytical store — stronger multiplier.',
+    baseCost: 5000000,  costMult: 1.15, baseProduction: 0.01,  produces: 'insights' },
+  { id: 6, tier: 2, name: 'Data Lake',           emoji: '🌊', desc: 'Petabyte-scale storage — major multiplier.',
+    baseCost: 50000000, costMult: 1.15, baseProduction: 0.05,  produces: 'insights' },
 ];
 
 const UPGRADES = [
@@ -58,19 +58,19 @@ const UPGRADES = [
     cost: { resource: 'dataPoints', amount: 4000 },   effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
   { id: 9,  name: 'Star Schema Design',    desc: 'Power BI Dashboards 2× production.',
     unlock: { type: 'owned', producerId: 4, count: 1 },
-    cost: { resource: 'dataPoints', amount: 6000 },   effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 750000 },    effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
   { id: 10, name: 'Row-Level Security',    desc: 'Power BI Dashboards 2× production.',
     unlock: { type: 'owned', producerId: 4, count: 5 },
-    cost: { resource: 'dataPoints', amount: 40000 },  effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 3000000 },   effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
   { id: 11, name: 'Columnar Storage',      desc: 'Data Warehouses 2× production.',
     unlock: { type: 'owned', producerId: 5, count: 1 },
-    cost: { resource: 'dataPoints', amount: 60000 },  effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 8000000 },   effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
   { id: 12, name: 'Partitioning Strategy', desc: 'Data Warehouses 2× production.',
     unlock: { type: 'owned', producerId: 5, count: 5 },
-    cost: { resource: 'dataPoints', amount: 400000 }, effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 30000000 },  effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
   { id: 13, name: 'Delta Lake Format',     desc: 'Data Lakes 2× production.',
     unlock: { type: 'owned', producerId: 6, count: 1 },
-    cost: { resource: 'dataPoints', amount: 400000 }, effect: { type: 'producerMultiplier', producerId: 6, multiplier: 2 } },
+    cost: { resource: 'dataPoints', amount: 75000000 },  effect: { type: 'producerMultiplier', producerId: 6, multiplier: 2 } },
   { id: 17, name: 'Touch Typing',          desc: 'Click power 2×.',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 10 },
     cost: { resource: 'dataPoints', amount: 30 },     effect: { type: 'clickMultiplier', multiplier: 2 } },
@@ -149,12 +149,12 @@ const TERRITORIES = [
 ];
 
 const WORLD_UPGRADES = [
-  { id: 0, name: 'Regional Office',        cost: 5,    desc: 'All producers 1.5×'  },
-  { id: 1, name: 'Data Embassy',           cost: 20,   desc: 'Click power 3×'       },
-  { id: 2, name: 'International Pipeline', cost: 50,   desc: 'All Tier 1 2×'        },
-  { id: 3, name: 'Cross-Border Analytics', cost: 120,  desc: 'All Tier 2 2×'        },
-  { id: 4, name: 'Global Data Standard',   cost: 300,  desc: 'All producers 2×'     },
-  { id: 5, name: 'World Domination',       cost: 1000, desc: 'All producers 5×'     },
+  { id: 0, name: 'Regional Office',      cost: 5,    desc: 'Contracts rate +50%',  type: 'contracts', mult: 1.5 },
+  { id: 1, name: 'Supply Chain Hub',     cost: 20,   desc: 'DP production +100%',  type: 'dp',        mult: 2   },
+  { id: 2, name: 'Trade Agreement',      cost: 50,   desc: 'Contracts rate +100%', type: 'contracts', mult: 2   },
+  { id: 3, name: 'Global Network',       cost: 120,  desc: 'DP production +200%',  type: 'dp',        mult: 3   },
+  { id: 4, name: 'Data Standard',        cost: 300,  desc: 'Contracts rate +150%', type: 'contracts', mult: 2.5 },
+  { id: 5, name: 'World Domination',     cost: 1000, desc: 'DP production +500%',  type: 'dp',        mult: 6   },
 ];
 
 const QUESTS = [
@@ -273,6 +273,7 @@ function saveGame() {
     achievements: [...state.achievements],
     questsCompleted: [...state.questsCompleted],
     treeNodes: [...state.treeNodes],
+    unlockedPanels: [...panelsUnlocked],
     lastSaveTime: Date.now(),
     // Never save challenge snapshot
     inChallenge: false,
@@ -297,10 +298,10 @@ function loadGame() {
     state.questsCompleted = padArray(state.questsCompleted, QUESTS.length, false);
     state.treeNodes = padArray(state.treeNodes, TREE_NODES_DEF.length, false);
 
-    // Re-populate panel unlocks from loaded state (sequential order)
-    if (state.lifetimeDP >= 5000) panelsUnlocked.add('wm');
-    if (state.conquered && state.conquered.every(Boolean)) panelsUnlocked.add('t2');
-    if (calcRPGain() >= 5) panelsUnlocked.add('prestige');
+    // Re-populate panel unlocks from saved data
+    if (saved.unlockedPanels) {
+      for (const key of saved.unlockedPanels) panelsUnlocked.add(key);
+    }
 
     const offlineSec = Math.min((Date.now() - (saved.lastSaveTime || Date.now())) / 1000, MAX_OFFLINE_HOURS * 3600);
     if (offlineSec > 10) {
@@ -376,12 +377,10 @@ function producerEffectiveRate(p) {
   if (state.treeNodes[7] && p.tier === 2) mult *= 5;             // Market Leader: T2 ×5
   if (state.treeNodes[8]) mult *= 10;                             // Data Empire: all ×10
 
-  // World upgrade effects
-  if (state.worldUpgrades[0]) mult *= 1.5;                        // Regional Office: all ×1.5
-  if (state.worldUpgrades[2] && p.tier === 1) mult *= 2;         // Int'l Pipeline: T1 ×2
-  if (state.worldUpgrades[3] && p.tier === 2) mult *= 2;         // Cross-Border: T2 ×2
-  if (state.worldUpgrades[4]) mult *= 2;                         // Global Standard: all ×2
-  if (state.worldUpgrades[5]) mult *= 5;                         // World Domination: all ×5
+  // World upgrade effects (only DP-type boosts affect producers)
+  for (let i = 0; i < WORLD_UPGRADES.length; i++) {
+    if (state.worldUpgrades[i] && WORLD_UPGRADES[i].type === 'dp') mult *= WORLD_UPGRADES[i].mult;
+  }
 
   // Quest reward effects (permanent)
   if (state.questsCompleted[0] && p.tier === 1) mult *= 2;       // Startup Mode reward: T1 ×2
@@ -448,6 +447,7 @@ function clickPower() {
     if (!state.achievements[i]) continue;
     gatherClickMultiplier(ACHIEVEMENTS[i].effect, (m) => { power *= m; });
   }
+  power *= (1 + state.insights); // Insights multiplier
   return power;
 }
 
@@ -465,6 +465,10 @@ function calcContractsRate() {
   let rate = TERRITORIES
     .filter(t => state.conquered[t.idx])
     .reduce((s, t) => s + t.rate, 0);
+  // World upgrade contracts boosts
+  for (let i = 0; i < WORLD_UPGRADES.length; i++) {
+    if (state.worldUpgrades[i] && WORLD_UPGRADES[i].type === 'contracts') rate *= WORLD_UPGRADES[i].mult;
+  }
   if (state.treeNodes[6]) rate *= 3; // Global Expansion: contracts ×3
   return rate;
 }
@@ -492,26 +496,23 @@ function conquerTerritory(idx) {
 function tick() {
   state.tickCount++;
 
-  // Tier 1: produce Data Points
+  // Tier 1: produce Data Points (multiplied by Insights)
+  const insightsMult = 1 + state.insights;
   for (const p of PRODUCERS) {
     if (p.tier !== 1) continue;
     if (state.owned[p.id] === 0) continue;
-    const produced = producerEffectiveRate(p) * DT;
+    const produced = producerEffectiveRate(p) * DT * insightsMult;
     state.dataPoints += produced;
     state.lifetimeDP += produced;
   }
 
-  // Tier 2: consume DP, produce Insights
-  const insightProducers = PRODUCERS.filter(p => p.tier === 2 && state.owned[p.id] > 0);
-  let totalInsightDemand = insightProducers.reduce((s, p) => s + p.consumeRate * state.owned[p.id] * DT, 0);
-  const insightRatio = totalInsightDemand > 0 ? Math.min(1, state.dataPoints / totalInsightDemand) : 1;
-  for (const p of insightProducers) {
-    const consume = p.consumeRate * state.owned[p.id] * DT * insightRatio;
-    const produce = producerEffectiveRate(p) * DT * insightRatio;
-    state.dataPoints -= consume;
-    state.insights += produce;
-    state.lifetimeInsights += produce;
-    starvationFlags[p.id] = insightRatio < 0.99;
+  // Tier 2: produce Insights (passive, no consumption)
+  for (const p of PRODUCERS) {
+    if (p.tier !== 2) continue;
+    if (state.owned[p.id] === 0) continue;
+    const produced = producerEffectiveRate(p) * DT;
+    state.insights += produced;
+    state.lifetimeInsights += produced;
   }
 
   // Contracts
@@ -763,24 +764,47 @@ function checkQuestGoal() {
 
 // ═══ PANEL UNLOCK SYSTEM ═══
 
-// Unlock order: wm → t2 → quests → prestige (sequential)
+// Unlock order: wm → t2 → prestige (sequential)
+// cost: DP cost to purchase (null = auto-unlock when ready() returns true)
+// ready: prerequisite to show the locked panel as purchasable (or auto-unlock if no cost)
 const UNLOCK_ORDER = [
-  { key: 'wm',       test: () => state.lifetimeDP >= 5000,        progressFn: () => `${fmt(state.lifetimeDP)} / 5,000 DP` },
-  { key: 't2',       test: () => state.conquered.every(Boolean),  progressFn: () => `${state.conquered.filter(Boolean).length} / ${TERRITORIES.length} Territories` },
-  { key: 'prestige', test: () => calcRPGain() >= 5,               progressFn: () => `${calcRPGain()} / 5 RP` },
+  { key: 'wm',       cost: 14000,  ready: () => true,                           progressFn: () => `${fmt(state.dataPoints)} / ${fmt(14000)} DP`,   label: 'Unlock World Map' },
+  { key: 't2',       cost: 500000, ready: () => state.conquered.every(Boolean), progressFn: () => `${state.conquered.filter(Boolean).length} / ${TERRITORIES.length} Territories`, label: 'Unlock Tier 2' },
+  { key: 'prestige', cost: null,   ready: () => calcRPGain() >= 5,              progressFn: () => `${calcRPGain()} / 5 RP`, label: 'Prestige' },
 ];
 
 function checkPanelUnlocks() {
   for (const c of UNLOCK_ORDER) {
     if (panelsUnlocked.has(c.key)) continue;
-    if (c.test()) {
+    // Auto-unlock (no cost): unlock when ready
+    if (!c.cost && c.ready()) {
       panelsUnlocked.add(c.key);
       unlockPanelsByKey(c.key);
       updateLockedPanelVisibility();
       renderKPI();
     }
+    break; // Only process the next unlock in order
   }
+  updateLockedPanelVisibility();
   updateLockedProgress();
+}
+
+function tryPurchaseUnlock(key) {
+  const entry = UNLOCK_ORDER.find(c => c.key === key);
+  if (!entry || !entry.cost) return;
+  if (panelsUnlocked.has(key)) return;
+  if (!entry.ready()) return;
+  if (state.dataPoints < entry.cost) {
+    showToast(`Need ${fmt(entry.cost)} DP to unlock`, 'info');
+    return;
+  }
+  state.dataPoints -= entry.cost;
+  panelsUnlocked.add(key);
+  unlockPanelsByKey(key);
+  updateLockedPanelVisibility();
+  renderKPI();
+  addLog(`Unlocked: ${entry.label}! (−${fmt(entry.cost)} DP)`, 'mile');
+  showToast(`${entry.label} unlocked!`, 'mile');
 }
 
 function unlockPanelsByKey(key) {
@@ -1019,8 +1043,8 @@ function renderKPI() {
 
   setText('kpi-contracts-value', fmt(state.contracts));
   setText('kpi-contracts-rate', `${fmtDec(calcContractsRate())}/s`);
-  setText('kpi-ins-value', fmt(state.insights));
-  setText('kpi-ins-rate', `${fmtDec(calcTotalProduction('insights'))}/s`);
+  setText('kpi-ins-value', `×${(1 + state.insights).toFixed(3)}`);
+  setText('kpi-ins-rate', `+${fmtDec(calcTotalProduction('insights'))}/s`);
   const questsDone = state.questsCompleted.filter(Boolean).length;
   setText('kpi-quests-value', `${questsDone}/${QUESTS.length}`);
   setText('kpi-rp-value', `${state.reputationPoints} RP`);
@@ -1047,9 +1071,9 @@ function buildKPIBar() {
       <div class="kpi-sub" id="kpi-contracts-rate">0/s</div>
     </div>
     <div class="kpi-card" id="kpi-ins-card" style="display:none">
-      <div class="kpi-label">Insights</div>
-      <div class="kpi-value teal" id="kpi-ins-value">0</div>
-      <div class="kpi-sub" id="kpi-ins-rate">0/s</div>
+      <div class="kpi-label">DP Multiplier</div>
+      <div class="kpi-value teal" id="kpi-ins-value">×1.000</div>
+      <div class="kpi-sub" id="kpi-ins-rate">+0/s</div>
     </div>
     <div class="kpi-card" id="kpi-quests-card" style="display:none">
       <div class="kpi-label">Quests</div>
@@ -1109,10 +1133,13 @@ function updateLockedPanelVisibility() {
 
   for (const [key, ids] of Object.entries(panelUnlockMap)) {
     if (panelsUnlocked.has(key)) continue;
+    const entry = UNLOCK_ORDER.find(c => c.key === key);
+    // Show if it's the next in order AND its prerequisite (ready) is met
+    const shouldShow = key === nextKey && entry && entry.ready();
     for (const id of ids) {
       const el = document.getElementById(id);
       if (!el) continue;
-      if (key === nextKey) {
+      if (shouldShow) {
         el.classList.remove('hidden-panel');
         if (!el.querySelector('.locked-placeholder')) {
           buildLockedPlaceholder(el, key);
@@ -1127,12 +1154,19 @@ function updateLockedPanelVisibility() {
 
 function buildLockedPlaceholder(el, unlockKey) {
   const entry = UNLOCK_ORDER.find(c => c.key === unlockKey);
-  const progress = entry ? entry.progressFn() : '';
+  if (!entry) return;
+  const hasCost = !!entry.cost;
+  const progress = entry.progressFn();
   el.innerHTML = `
-    <div class="locked-placeholder">
+    <div class="locked-placeholder ${hasCost ? 'purchasable' : ''}">
+      <div class="locked-label">${entry.label}</div>
       <div class="locked-progress">${progress}</div>
+      ${hasCost ? '<div class="locked-hint">Click to unlock</div>' : ''}
     </div>
   `;
+  if (hasCost) {
+    el.querySelector('.locked-placeholder').addEventListener('click', () => tryPurchaseUnlock(unlockKey));
+  }
 }
 
 function updateLockedProgress() {
@@ -1143,6 +1177,11 @@ function updateLockedProgress() {
   const els = document.querySelectorAll('.locked-progress');
   for (const el of els) {
     el.textContent = entry.progressFn();
+  }
+  // Update purchasable affordability
+  const placeholders = document.querySelectorAll('.locked-placeholder.purchasable');
+  for (const ph of placeholders) {
+    ph.classList.toggle('affordable', entry.cost && state.dataPoints >= entry.cost);
   }
 }
 
@@ -1206,8 +1245,8 @@ function buildT2Panel() {
 
   el.innerHTML = `
     <div class="panel-header">
-      <span class="panel-title">T2 Producers</span>
-      <span class="panel-badge teal">Insights</span>
+      <span class="panel-title">T2 — Insights</span>
+      <span class="panel-badge teal">DP Multiplier</span>
     </div>
     <div class="panel-body" id="t2-body">
       <div class="panel-sub">
