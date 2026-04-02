@@ -82,7 +82,7 @@ function buildDashboard() {
   const panels = [
     { id: 'panel-t1',          unlock: 't1',      fn: buildT1Panel },
     { id: 'panel-click',       unlock: 'click',   fn: buildClickPanel },
-    { id: 'panel-quests',      unlock: null,       fn: null },
+    { id: 'panel-quests',      unlock: 'quests',   fn: buildQuestsPanel },
     { id: 'panel-prestige',    unlock: 'prestige',fn: buildPrestigeTreePanel },
     { id: 'panel-wm-upgrades', unlock: 'wm',      fn: buildWorldUpgradesPanel },
     { id: 'panel-wm-map',      unlock: 'wm',      fn: buildWorldMapPanel },
@@ -94,9 +94,7 @@ function buildDashboard() {
     el.className = 'dash-panel';
     el.id = p.id;
     dash.appendChild(el);
-    if (p.unlock === null) {
-      el.classList.add('hidden-panel');
-    } else if (panelsUnlocked.has(p.unlock)) {
+    if (panelsUnlocked.has(p.unlock)) {
       p.fn();
     }
   }
@@ -111,18 +109,18 @@ function getNextUnlockKey() {
 }
 
 function updateLockedPanelVisibility() {
-  const nextKey = getNextUnlockKey();
   const panelUnlockMap = {
     wm:      ['panel-wm-upgrades', 'panel-wm-map'],
     t2:      ['panel-t2'],
+    quests:  ['panel-quests'],
     prestige:['panel-prestige'],
   };
 
   for (const [key, ids] of Object.entries(panelUnlockMap)) {
     if (panelsUnlocked.has(key)) continue;
     const entry = UNLOCK_ORDER.find(c => c.key === key);
-    // Show if it's the next in order AND its prerequisite (ready) is met
-    const shouldShow = key === nextKey && entry && entry.ready();
+    // Show any locked panel whose ready() is true
+    const shouldShow = entry && entry.ready();
     for (const id of ids) {
       const el = document.getElementById(id);
       if (!el) continue;
@@ -142,31 +140,41 @@ function updateLockedPanelVisibility() {
 function buildLockedPlaceholder(el, unlockKey) {
   const entry = UNLOCK_ORDER.find(c => c.key === unlockKey);
   if (!entry) return;
-  const hasCost = !!entry.cost;
+  const clickable = entry.cost !== null; // cost >= 0 means clickable (including 0 = free)
   const progress = entry.progressFn();
   el.innerHTML = `
-    <div class="locked-placeholder ${hasCost ? 'purchasable' : ''}">
+    <div class="locked-placeholder ${clickable ? 'purchasable' : ''}">
       <div class="locked-progress">${progress}</div>
     </div>
   `;
-  if (hasCost) {
+  if (clickable) {
     el.querySelector('.locked-placeholder').addEventListener('click', () => tryPurchaseUnlock(unlockKey));
   }
 }
 
 function updateLockedProgress() {
-  const nextKey = getNextUnlockKey();
-  if (!nextKey) return;
-  const entry = UNLOCK_ORDER.find(c => c.key === nextKey);
-  if (!entry) return;
-  const els = document.querySelectorAll('.locked-progress');
-  for (const el of els) {
-    el.textContent = entry.progressFn();
-  }
-  // Update purchasable affordability
-  const placeholders = document.querySelectorAll('.locked-placeholder.purchasable');
-  for (const ph of placeholders) {
-    ph.classList.toggle('affordable', entry.cost && state.dataPoints >= entry.cost);
+  const panelUnlockMap = {
+    wm:      ['panel-wm-upgrades', 'panel-wm-map'],
+    t2:      ['panel-t2'],
+    quests:  ['panel-quests'],
+    prestige:['panel-prestige'],
+  };
+  for (const c of UNLOCK_ORDER) {
+    if (panelsUnlocked.has(c.key)) continue;
+    if (!c.ready()) continue;
+    // Update progress text for this locked panel
+    const ids = panelUnlockMap[c.key] || [];
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const prog = el.querySelector('.locked-progress');
+      if (prog) prog.textContent = c.progressFn();
+      const ph = el.querySelector('.locked-placeholder.purchasable');
+      if (ph) {
+        const canAfford = c.cost === 0 ? c.ready() : (c.cost > 0 && state.dataPoints >= c.cost);
+        ph.classList.toggle('affordable', canAfford);
+      }
+    }
   }
 }
 
@@ -1012,7 +1020,6 @@ function renderStatusBody() {
   const totalOwned = state.owned.reduce((s, n) => s + n, 0);
   const upgBought = state.upgrades.filter(Boolean).length;
   const rpGain = calcRPGain();
-  const milestonesReached = MILESTONES.filter(m => milestonesFired.has(m.id)).length;
   const conquered = getConqueredSet();
 
   const producerRows = PRODUCERS
@@ -1034,7 +1041,6 @@ function renderStatusBody() {
       <div class="status-section-title">Session</div>
       <div class="status-row"><span class="status-row-label">Session time</span><span class="status-row-value">${fmtDuration(sessionMs)}</span></div>
       <div class="status-row"><span class="status-row-label">Fiscal year resets</span><span class="status-row-value">${state.prestigeCount}</span></div>
-      <div class="status-row"><span class="status-row-label">Milestones reached</span><span class="status-row-value">${milestonesReached} / ${MILESTONES.length}</span></div>
     </div>
 
     <div class="status-section">
@@ -1095,13 +1101,6 @@ function renderStatusBody() {
       </div>`).join('')}
     </div>
 
-    <div class="status-section">
-      <div class="status-section-title">Milestones</div>
-      ${MILESTONES.map(m => `<div class="status-row milestone-row ${milestonesFired.has(m.id) ? 'done' : 'locked'}">
-        <span class="milestone-icon">${milestonesFired.has(m.id) ? '✓' : '○'}</span>
-        <span class="status-row-label">${m.msg}</span>
-      </div>`).join('')}
-    </div>
   `;
 }
 
@@ -1203,7 +1202,6 @@ function wipeData() {
   sparklineData = [];
   activityLog = [];
   starvationFlags = new Array(PRODUCERS.length).fill(false);
-  milestonesFired.clear();
   panelsUnlocked.clear();
   panelsUnlocked.add('t1');
   panelsUnlocked.add('click');

@@ -379,7 +379,6 @@ function tick() {
 
   checkUpgradeUnlocks();
   checkAchievements();
-  checkMilestones();
   checkPanelUnlocks();
 
   if (state.inChallenge) checkQuestGoal();
@@ -529,7 +528,6 @@ function doPrestige() {
   state.goalMet = false;
   challengeSnapshot = null;
   sparklineData = [];
-  milestonesFired.clear();
 
   // Re-lock panels except t1, click, prestige
   panelsUnlocked.clear();
@@ -635,19 +633,19 @@ function checkPanelUnlocks() {
 
 function tryPurchaseUnlock(key) {
   const entry = UNLOCK_ORDER.find(c => c.key === key);
-  if (!entry || !entry.cost) return;
+  if (!entry || entry.cost === null) return;
   if (panelsUnlocked.has(key)) return;
   if (!entry.ready()) return;
-  if (state.dataPoints < entry.cost) {
+  if (entry.cost > 0 && state.dataPoints < entry.cost) {
     showToast(`Need ${fmt(entry.cost)} DP to unlock`, 'info');
     return;
   }
-  state.dataPoints -= entry.cost;
+  if (entry.cost > 0) state.dataPoints -= entry.cost;
   panelsUnlocked.add(key);
   unlockPanelsByKey(key);
   updateLockedPanelVisibility();
   renderKPI();
-  addLog(`Unlocked: ${entry.label}! (−${fmt(entry.cost)} DP)`, 'mile');
+  addLog(`Unlocked: ${entry.label}!${entry.cost > 0 ? ` (−${fmt(entry.cost)} DP)` : ''}`, 'mile');
   showToast(`${entry.label} unlocked!`, 'mile');
 }
 
@@ -656,6 +654,7 @@ function unlockPanelsByKey(key) {
     wm:      [{ id: 'panel-wm-upgrades', fn: buildWorldUpgradesPanel },
                { id: 'panel-wm-map',     fn: buildWorldMapPanel }],
     t2:      [{ id: 'panel-t2',          fn: buildT2Panel }],
+    quests:  [{ id: 'panel-quests',      fn: buildQuestsPanel }],
     prestige:[{ id: 'panel-prestige',    fn: buildPrestigeTreePanel }],
   };
   for (const entry of (map[key] || [])) {
@@ -691,21 +690,6 @@ function checkUpgradeUnlocks() {
     const threshold = u.cost.amount * 0.9;
     if (state[resource] >= threshold || state.lifetimeDP >= threshold) {
       state.upgradeVisible[i] = true;
-    }
-  }
-}
-
-// ═══ MILESTONES ═══
-
-const milestonesFired = new Set();
-
-function checkMilestones() {
-  for (const m of MILESTONES) {
-    if (milestonesFired.has(m.id)) continue;
-    if (m.check()) {
-      milestonesFired.add(m.id);
-      addLog(m.msg, m.type);
-      showToast(m.msg, m.type);
     }
   }
 }

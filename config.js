@@ -282,24 +282,13 @@ const NODE_POS = [
 
 // ═══ PANEL UNLOCK ORDER ═══
 
-// Unlock order: wm → t2 → prestige (sequential)
-// cost: DP cost to purchase (null = auto-unlock when ready() returns true)
-// ready: prerequisite to show the locked panel as purchasable (or auto-unlock if no cost)
+// Unlock order: wm → t2 → quests → prestige
+// cost: DP cost to purchase (0 = free click, null = auto-unlock)
+// ready: prerequisite to show the locked panel
 const UNLOCK_ORDER = [
-  { key: 'wm',       cost: 100000, ready: () => true,                           progressFn: () => `${fmt(state.dataPoints)} / ${fmt(100000)} DP`,  label: 'Unlock World Map' },
-  { key: 't2',       cost: 1e10,   ready: () => state.conquered.every(Boolean), progressFn: () => `${state.conquered.filter(Boolean).length} / ${TERRITORIES.length} Territories`, label: 'Unlock Tier 2' },
-  { key: 'prestige', cost: null,   ready: () => calcRPGain() >= 5,              progressFn: () => `${calcRPGain()} / 5 RP`, label: 'Prestige' },
+  { key: 'wm',       cost: 100000, ready: () => true,                             progressFn: () => `${fmt(state.dataPoints)} / ${fmt(100000)} DP`,  label: 'Unlock World Map' },
+  { key: 't2',       cost: 1e10,   ready: () => state.conquered.every(Boolean),   progressFn: () => `${state.conquered.filter(Boolean).length} / ${TERRITORIES.length} Territories`, label: 'Unlock Tier 2' },
+  { key: 'quests',   cost: 1e15,   ready: () => panelsUnlocked.has('t2'),         progressFn: () => `${fmt(state.dataPoints)} / ${fmt(1e15)} DP`,    label: 'Unlock Quests' },
+  { key: 'prestige', cost: 0,      ready: () => panelsUnlocked.has('quests'),     progressFn: () => `${state.questsCompleted.filter(Boolean).length} / ${QUESTS.length} Quests Completed`, label: 'Unlock Prestige' },
 ];
 
-// ═══ MILESTONES ═══
-
-const MILESTONES = [
-  { id: 'm0', check: () => state.lifetimeDP >= 1000,      msg: 'Your practice is growing. 1K Data Points processed.', type: 'mile' },
-  { id: 'm1', check: () => state.lifetimeDP >= 10000,     msg: '10K Data Points — clients are taking notice.', type: 'mile' },
-  { id: 'm2', check: () => state.owned[4] >= 1,           msg: 'First Power BI Dashboard deployed! Insights unlocked.', type: 'mile' },
-  { id: 'm3', check: () => state.lifetimeInsights >= 100, msg: '100 Insights generated — the board is impressed.', type: 'mile' },
-  { id: 'm6', check: () => calcRPGain() >= 5,             msg: 'Ready for a Fiscal Year Reset. Check the Prestige panel.', type: 'mile' },
-  { id: 'm7', check: () => state.prestigeCount >= 1,      msg: 'Year closed. Your reputation precedes you.', type: 'pres' },
-  { id: 'm8', check: () => getConqueredSet().size >= 1,   msg: 'First territory conquered! Contracts flowing in.', type: 'mile' },
-  { id: 'm9', check: () => getConqueredSet().size >= 6,   msg: 'World domination complete! All territories conquered.', type: 'mile' },
-];
