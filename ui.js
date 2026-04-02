@@ -119,8 +119,8 @@ function updateLockedPanelVisibility() {
   for (const [key, ids] of Object.entries(panelUnlockMap)) {
     if (panelsUnlocked.has(key)) continue;
     const entry = UNLOCK_ORDER.find(c => c.key === key);
-    // Show any locked panel whose ready() is true
-    const shouldShow = entry && entry.ready();
+    // Show panel if visible() (or ready() as fallback) is true
+    const shouldShow = entry && (entry.visible ? entry.visible() : entry.ready());
     for (const id of ids) {
       const el = document.getElementById(id);
       if (!el) continue;
@@ -161,7 +161,8 @@ function updateLockedProgress() {
   };
   for (const c of UNLOCK_ORDER) {
     if (panelsUnlocked.has(c.key)) continue;
-    if (!c.ready()) continue;
+    const isVisible = c.visible ? c.visible() : c.ready();
+    if (!isVisible) continue;
     // Update progress text for this locked panel
     const ids = panelUnlockMap[c.key] || [];
     for (const id of ids) {
