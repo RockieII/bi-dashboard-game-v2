@@ -579,46 +579,65 @@ function buildWorldUpgradesPanel() {
   const el = document.getElementById('panel-wm-upgrades');
   if (!el) return;
 
+  const sorted = [...WORLD_UPGRADES].sort((a, b) => a.cost - b.cost);
+
   el.innerHTML = `
     <div class="panel-header">
       <span class="panel-title">WM Upgrades</span>
       <span class="panel-badge amber">Contracts</span>
     </div>
-    <div class="panel-body" id="wm-upg-body">
-      ${WORLD_UPGRADES.map(u => {
-        const purchased = state.worldUpgrades[u.id];
-        const canAfford = !purchased && state.contracts >= u.cost;
-        return `<div class="wm-upg-card${purchased ? ' purchased' : (!canAfford ? ' unaffordable' : '')}" id="wm-upg-${u.id}">
-          <div class="wm-upg-name">${u.name}</div>
-          <div class="wm-upg-effect">${u.desc}</div>
-          <div class="wm-upg-cost ${purchased ? 'done' : (canAfford ? 'affordable' : 'cant-afford')}" id="wm-upg-cost-${u.id}">
-            ${purchased ? 'Active' : `${fmt(u.cost)} Contracts`}
-          </div>
-        </div>`;
-      }).join('')}
+    <div class="panel-body">
+      <div class="panel-sub">
+        <div class="sub-header">
+          <span class="section-divider">Upgrades</span>
+          <button class="filter-btn" id="wm-upg-filter">All</button>
+        </div>
+        <div id="wm-upg-list"></div>
+      </div>
     </div>
   `;
 
-  for (const u of WORLD_UPGRADES) {
-    const card = document.getElementById(`wm-upg-${u.id}`);
-    if (card) card.addEventListener('click', () => buyWorldUpgrade(u.id));
+  const list = document.getElementById('wm-upg-list');
+  for (const u of sorted) {
+    const purchased = state.worldUpgrades[u.id];
+    const canAfford = !purchased && state.contracts >= u.cost;
+    const pill = document.createElement('div');
+    pill.className = `upg-pill${purchased ? ' purchased' : (!canAfford ? ' unaffordable' : '')}`;
+    pill.id = `wm-upg-${u.id}`;
+    pill.innerHTML = `
+      <div class="upg-pill-info">
+        <div class="upg-pill-name">
+          <span class="upg-tag tag-tier2">WM</span>
+          ${u.name}
+        </div>
+        <div class="upg-pill-effect">${u.desc}</div>
+      </div>
+      <span class="upg-pill-cost ${purchased ? 'done' : (canAfford ? 'affordable' : 'cant-afford')}" id="wm-upg-cost-${u.id}">
+        ${purchased ? '✓' : `${fmt(u.cost)} C`}
+      </span>
+    `;
+    pill.addEventListener('click', () => buyWorldUpgrade(u.id));
+    list.appendChild(pill);
   }
+
+  document.getElementById('wm-upg-filter').addEventListener('click', () => cycleUpgradeFilter('wm-upg-list', 'wm-upg-filter'));
 }
 
 function renderWorldUpgradesPanel() {
   for (const u of WORLD_UPGRADES) {
-    const card = document.getElementById(`wm-upg-${u.id}`);
-    if (!card) continue;
+    const pill = document.getElementById(`wm-upg-${u.id}`);
+    if (!pill) continue;
     const purchased = state.worldUpgrades[u.id];
     const canAfford = !purchased && state.contracts >= u.cost;
-    card.classList.toggle('purchased', purchased);
-    card.classList.toggle('unaffordable', !purchased && !canAfford);
+    pill.classList.toggle('purchased', purchased);
+    pill.classList.toggle('unaffordable', !purchased && !canAfford);
     const costEl = document.getElementById(`wm-upg-cost-${u.id}`);
     if (costEl) {
-      costEl.textContent = purchased ? 'Active' : `${fmt(u.cost)} Contracts`;
-      costEl.className = `wm-upg-cost ${purchased ? 'done' : (canAfford ? 'affordable' : 'cant-afford')}`;
+      costEl.textContent = purchased ? '✓' : `${fmt(u.cost)} C`;
+      costEl.className = `upg-pill-cost ${purchased ? 'done' : (canAfford ? 'affordable' : 'cant-afford')}`;
     }
   }
+  applyUpgradeFilter('wm-upg-list');
 }
 
 // ═══ BUILD: QUESTS PANEL ═══

@@ -708,7 +708,7 @@ function checkUpgradeUnlocks() {
     }
     const resource = u.cost.resource;
     const threshold = u.cost.amount * 0.9;
-    if (state[resource] >= threshold || state.lifetimeDP >= threshold) {
+    if (state[resource] >= threshold) {
       state.upgradeVisible[i] = true;
     }
   }
