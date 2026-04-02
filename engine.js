@@ -48,6 +48,8 @@ function defaultState() {
     challengeId: -1,
     goalMet: false,
     totalClicks: 0,
+    autoClickerEnabled: false,
+    autoClickerRate: 1, // clicks per second
     lastSaveTime: Date.now(),
     tickCount: 0,
   };
@@ -188,9 +190,9 @@ function producerEffectiveRate(p) {
 
   // Territory conquest boosts
   for (const t of TERRITORIES) {
-    if (state.conquered[t.idx] && t.boost && t.boost.type === 'producerMultiplier' && t.boost.producerId === p.id) {
-      mult *= t.boost.multiplier;
-    }
+    if (!state.conquered[t.idx] || !t.boost) continue;
+    if (t.boost.type === 'producerMultiplier' && t.boost.producerId === p.id) mult *= t.boost.multiplier;
+    if (t.boost.type === 'allTierMultiplier' && p.tier === t.boost.tier) mult *= t.boost.multiplier;
   }
 
   // Quest reward effects (permanent)
@@ -306,6 +308,12 @@ function calcContractsRate() {
     if (state.worldUpgrades[wu.id] && wu.type === 'contracts') rate *= wu.mult;
   }
   if (state.treeNodes[6]) rate *= 3; // Global Expansion: contracts ×3
+  // Territory contracts boosts
+  for (const t of TERRITORIES) {
+    if (state.conquered[t.idx] && t.boost && t.boost.type === 'contractsMultiplier') {
+      rate *= t.boost.multiplier;
+    }
+  }
   // Upgrade contracts boosts
   for (const u of UPGRADES) {
     if (state.upgrades[u.id] && u.effect && u.effect.type === 'contractsMultiplier') {
@@ -387,6 +395,14 @@ function tick() {
     sparklineData.push(state.dataPoints);
     if (sparklineData.length > SPARKLINE_MAX) sparklineData.shift();
     drawSparkline();
+  }
+
+  // Autoclicker (if unlocked via prestige)
+  if (state.autoClickerEnabled) {
+    const power = clickPower();
+    const autoDP = power * state.autoClickerRate * DT;
+    state.dataPoints += autoDP;
+    state.lifetimeDP += autoDP;
   }
 
   if (state.tickCount % AUTOSAVE_TICKS === 0) saveGame();
@@ -686,6 +702,10 @@ function checkUpgradeUnlocks() {
   for (const u of UPGRADES) {
     const i = u.id;
     if (state.upgradeVisible[i]) continue;
+    // Territory-gated upgrades: only visible after conquering the territory
+    if (u.unlock && u.unlock.type === 'territory') {
+      if (!state.conquered[u.unlock.territoryIdx]) continue;
+    }
     const resource = u.cost.resource;
     const threshold = u.cost.amount * 0.9;
     if (state[resource] >= threshold || state.lifetimeDP >= threshold) {

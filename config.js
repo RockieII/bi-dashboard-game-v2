@@ -125,6 +125,19 @@ const UPGRADES = [
   { id: 25, name: 'Lakehouse Unification',  desc: 'All Tier 1 producers 2× production.',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 250000 },
     cost: { resource: 'dataPoints', amount: 150000 }, effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
+  // Asia-unlocked T1 upgrades (ids 38-41, visible only after conquering Asia)
+  { id: 38, name: 'Neural Spreadsheets',   desc: 'Excel Analysts 5× production.',
+    unlock: { type: 'territory', territoryIdx: 4 },
+    cost: { resource: 'dataPoints', amount: 1e7 },   effect: { type: 'producerMultiplier', producerId: 0, multiplier: 5 } },
+  { id: 39, name: 'Quantum Queries',       desc: 'SQL Developers 5× production.',
+    unlock: { type: 'territory', territoryIdx: 4 },
+    cost: { resource: 'dataPoints', amount: 5e7 },   effect: { type: 'producerMultiplier', producerId: 1, multiplier: 5 } },
+  { id: 40, name: 'AI Orchestration',      desc: 'ETL Pipelines 5× production.',
+    unlock: { type: 'territory', territoryIdx: 4 },
+    cost: { resource: 'dataPoints', amount: 2e8 },   effect: { type: 'producerMultiplier', producerId: 2, multiplier: 5 } },
+  { id: 41, name: 'Autonomous Cataloging', desc: 'Data Catalogs 5× production.',
+    unlock: { type: 'territory', territoryIdx: 4 },
+    cost: { resource: 'dataPoints', amount: 1e9 },   effect: { type: 'producerMultiplier', producerId: 3, multiplier: 5 } },
   // Additional T2 upgrades (ids 26-32)
   { id: 26, name: 'Advanced DAX',          desc: 'Power BI Dashboards 3× production.',
     unlock: { type: 'owned', producerId: 4, count: 15 },
@@ -199,7 +212,7 @@ const ACHIEVEMENTS = [
 ];
 
 const UPGRADE_GROUPS = [
-  { id: 'grp-t1',    label: 'Tier 1',  tag: 'T1',    css: 'tag-tier1', ids: [0,1,2,3,4,5,6,7,8,19,20,21,22,23,24,25] },
+  { id: 'grp-t1',    label: 'Tier 1',  tag: 'T1',    css: 'tag-tier1', ids: [0,1,2,3,4,5,6,7,8,19,20,21,22,23,24,25,38,39,40,41] },
   { id: 'grp-t2',    label: 'Tier 2',  tag: 'T2',    css: 'tag-tier2', ids: [9,10,11,12,13,26,27,28,29,30,31,32] },
   { id: 'grp-click', label: 'Click',   tag: 'Click', css: 'tag-click', ids: [14,15,16,17,18,33,34,35,36,37] },
 ];
@@ -215,13 +228,13 @@ const TERRITORIES = [
     boost: { type: 'instantContracts', amount: 1000, desc: '+1,000 Contracts on conquest' },
     d: 'M128 18 L131 14 L134 10 L137 8 L140 6 L144 5 L148 7 L152 10 L155 8 L158 6 L160 8 L162 12 L165 10 L168 12 L170 15 L172 18 L170 22 L168 25 L165 28 L162 30 L160 32 L157 34 L155 36 L152 38 L150 40 L148 42 L145 43 L142 42 L140 40 L138 38 L136 40 L134 43 L132 41 L130 38 L128 35 L126 32 L127 28 L128 24 L129 20 Z' },
   { id: 'af', idx: 3, name: 'Africa',        emoji: '🌍', need: 220, rate: 2.0, color: '#e5c07b',
-    boost: null,
+    boost: { type: 'contractsMultiplier', multiplier: 5, desc: 'Contracts production ×5' },
     d: 'M135 44 L138 43 L142 44 L146 45 L150 46 L154 48 L158 50 L162 52 L165 55 L168 58 L170 62 L172 66 L173 70 L174 74 L173 78 L172 82 L170 86 L168 90 L166 94 L164 98 L162 102 L160 106 L157 110 L154 114 L151 118 L148 122 L146 125 L144 128 L142 130 L140 132 L138 133 L136 132 L135 129 L134 126 L133 122 L132 118 L131 114 L130 110 L130 106 L130 102 L131 98 L132 94 L132 90 L131 86 L130 82 L128 78 L126 74 L125 70 L125 66 L126 62 L128 58 L130 54 L132 50 L134 47 Z' },
   { id: 'as', idx: 4, name: 'Asia',          emoji: '🌏', need: 350, rate: 4.0, color: '#e06c75',
-    boost: null,
+    boost: { type: 'unlockUpgrades', desc: 'Unlock new T1 upgrades' },
     d: 'M172 5 L176 3 L180 4 L185 6 L190 5 L195 4 L200 3 L206 4 L212 5 L218 4 L224 3 L230 4 L236 6 L242 5 L248 4 L254 5 L260 7 L266 6 L272 8 L278 10 L282 12 L286 10 L289 13 L288 17 L285 20 L282 22 L278 24 L274 26 L270 28 L266 30 L262 32 L258 34 L254 32 L250 30 L246 32 L242 35 L238 38 L234 40 L230 42 L226 44 L222 46 L218 48 L214 50 L210 52 L206 55 L202 58 L198 62 L195 66 L192 70 L190 74 L188 78 L186 75 L184 71 L182 67 L180 63 L178 60 L176 64 L174 68 L172 72 L170 76 L168 72 L170 68 L172 64 L174 60 L175 56 L174 52 L172 48 L170 44 L168 40 L166 36 L168 32 L170 28 L172 24 L174 20 L175 16 L174 12 L173 8 Z' },
   { id: 'oc', idx: 5, name: 'Oceania',       emoji: '🌏', need: 550, rate: 8.0, color: '#3fb950',
-    boost: null,
+    boost: { type: 'allTierMultiplier', tier: 1, multiplier: 5, desc: 'All T1 production ×5' },
     d: 'M238 95 L242 92 L248 91 L254 92 L260 93 L265 95 L269 98 L272 101 L274 104 L275 108 L274 112 L272 116 L269 119 L266 122 L262 124 L258 126 L254 128 L250 130 L246 131 L242 132 L238 131 L236 128 L234 124 L233 120 L234 116 L236 112 L235 108 L234 104 L236 100 L238 97 Z' },
 ];
 
