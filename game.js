@@ -21,7 +21,7 @@ const PRODUCERS = [
     baseCost: 12000,  costMult: 1.13, baseProduction: 20,   produces: 'dataPoints' },
   // Tier 2 — produce Insights/s (passive multiplier to DP, costs DP to buy)
   { id: 4, tier: 2, name: 'Power BI Dashboard', emoji: '📈', desc: 'Self-service analytics — passive DP multiplier.',
-    baseCost: 1e9,        costMult: 1.3,  baseProduction: 0.001, produces: 'insights' },
+    baseCost: 1e10,       costMult: 1.3,  baseProduction: 0.001, produces: 'insights' },
   { id: 5, tier: 2, name: 'Data Warehouse',     emoji: '🏛️', desc: 'Centralised analytical store — stronger multiplier.',
     baseCost: 1e11,       costMult: 1.3,  baseProduction: 0.01,  produces: 'insights' },
   { id: 6, tier: 2, name: 'Data Lake',           emoji: '🌊', desc: 'Petabyte-scale storage — major multiplier.',
