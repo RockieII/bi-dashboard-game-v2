@@ -267,30 +267,48 @@ const QUESTS = [
     goalResource: 'lifetimeInsights', goalAmount: 500,   reward: 'All T2 ×2',            rewardType: 't2x2'    },
 ];
 
-// 0-indexed (id 0 = node 1 displayed as "1")
+// ═══ INSIGHT MILESTONES ═══
+
+const INSIGHT_MILESTONES = [
+  { threshold: 0.01,  reward: 'All T1 ×1.5',            effect: { type: 'allTierMultiplier', tier: 1, multiplier: 1.5 } },
+  { threshold: 0.05,  reward: 'Click power ×3',          effect: { type: 'clickMultiplier', multiplier: 3 } },
+  { threshold: 0.1,   reward: 'Contracts rate ×2',       effect: { type: 'contractsMultiplier', multiplier: 2 } },
+  { threshold: 0.25,  reward: 'All T2 ×2',               effect: { type: 'allTierMultiplier', tier: 2, multiplier: 2 } },
+  { threshold: 0.5,   reward: 'All producers ×2',        effect: { type: 'allMultiplier', multiplier: 2 } },
+  { threshold: 1.0,   reward: 'All T1 ×3 + Click ×5',   effect: { type: 'combo', effects: [{ type: 'allTierMultiplier', tier: 1, multiplier: 3 }, { type: 'clickMultiplier', multiplier: 5 }] } },
+  { threshold: 2.0,   reward: 'All producers ×5',        effect: { type: 'allMultiplier', multiplier: 5 } },
+  { threshold: 5.0,   reward: 'All producers ×10',       effect: { type: 'allMultiplier', multiplier: 10 } },
+];
+
+// ═══ PRESTIGE TREE ═══
+// Main spine: 0 → 1 → 3 → 5 → 6 → 8
+// Branches: 2 (off 1), 4 (off 3), 7 (off 6)
+// No cost — 1 node point per prestige, pick which to activate
+
 const TREE_NODES_DEF = [
-  { id: 0, name: 'Silver Certification', cost: 5,   desc: 'All producers 1.5×',             parent: null },
-  { id: 1, name: 'Click Mastery',        cost: 15,  desc: 'Click power ×5',                 parent: 0    },
-  { id: 2, name: 'Platinum Partner',     cost: 30,  desc: 'All T2 producers ×2',            parent: 0    },
-  { id: 3, name: 'Automation Expert',    cost: 60,  desc: 'All T1 producers ×3',            parent: 1    },
-  { id: 4, name: 'Enterprise License',   cost: 80,  desc: 'All producers ×2',               parent: 2    },
-  { id: 5, name: 'AI Automation',        cost: 150, desc: 'All producers ×2 + click ×2',    parent: 4    },
-  { id: 6, name: 'Global Expansion',     cost: 120, desc: 'Contracts rate ×3',              parent: 4    },
-  { id: 7, name: 'Market Leader',        cost: 300, desc: 'All T2 producers ×5',            parent: 6    },
-  { id: 8, name: 'Data Empire',          cost: 800, desc: 'All producers ×10',              parent: 7    },
+  { id: 0, name: 'Silver Certification', desc: 'All producers ×1.5',                      parent: null, type: 'spine' },
+  { id: 1, name: 'Auto-Clicker',        desc: 'Enables autoclicker (1 click/s)',           parent: 0,    type: 'spine' },
+  { id: 2, name: 'Turbo Click',         desc: 'Auto-clicker ×10 + click power ×5',        parent: 1,    type: 'branch' },
+  { id: 3, name: 'Insight Boost',       desc: 'Insight gain ×3',                           parent: 1,    type: 'spine' },
+  { id: 4, name: 'Contract Engine',     desc: 'Contracts rate ×5 + start with 100 C',     parent: 3,    type: 'branch' },
+  { id: 5, name: 'Softcap Breaker',     desc: 'Softcap threshold ×100',                   parent: 3,    type: 'spine' },
+  { id: 6, name: 'Auto-Buyer',          desc: 'Auto-buy cheapest T1 every 5s',             parent: 5,    type: 'spine' },
+  { id: 7, name: 'T2 Accelerator',      desc: 'Insight milestones give 2× bonus',          parent: 6,    type: 'branch' },
+  { id: 8, name: 'Data Empire',         desc: 'All producers ×10 + start with 1e6 DP',    parent: 6,    type: 'spine' },
 ];
 
 // SVG node positions — viewBox "0 0 180 390"
+// Spine runs down center (cx=90), branches fork left/right
 const NODE_POS = [
-  { cx: 90,  cy: 28  }, // 0 → node 1 (root)
-  { cx: 45,  cy: 95  }, // 1 → node 2
-  { cx: 135, cy: 95  }, // 2 → node 3
-  { cx: 45,  cy: 162 }, // 3 → node 4
-  { cx: 135, cy: 162 }, // 4 → node 5
-  { cx: 88,  cy: 229 }, // 5 → node 6
-  { cx: 138, cy: 229 }, // 6 → node 7
-  { cx: 138, cy: 296 }, // 7 → node 8
-  { cx: 138, cy: 363 }, // 8 → node 9
+  { cx: 90,  cy: 28  }, // 0 — Silver Cert (spine)
+  { cx: 90,  cy: 85  }, // 1 — Auto-Clicker (spine)
+  { cx: 40,  cy: 120 }, // 2 — Turbo Click (branch left)
+  { cx: 90,  cy: 150 }, // 3 — Insight Boost (spine)
+  { cx: 140, cy: 185 }, // 4 — Contract Engine (branch right)
+  { cx: 90,  cy: 215 }, // 5 — Softcap Breaker (spine)
+  { cx: 90,  cy: 280 }, // 6 — Auto-Buyer (spine)
+  { cx: 40,  cy: 315 }, // 7 — T2 Accelerator (branch left)
+  { cx: 90,  cy: 363 }, // 8 — Data Empire (spine)
 ];
 
 // ═══ PANEL UNLOCK ORDER ═══

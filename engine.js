@@ -44,6 +44,8 @@ function defaultState() {
     questsCompleted: new Array(QUESTS.length).fill(false),
     achievements: new Array(ACHIEVEMENTS.length).fill(false),
     treeNodes: new Array(TREE_NODES_DEF.length).fill(false),
+    insightMilestones: new Array(typeof INSIGHT_MILESTONES !== 'undefined' ? INSIGHT_MILESTONES.length : 8).fill(false),
+    prestigeNodes: 0,
     inChallenge: false,
     challengeId: -1,
     goalMet: false,
@@ -62,6 +64,7 @@ let starvationFlags = new Array(PRODUCERS.length).fill(false);
 let totalClickDP = 0;
 let sessionStart = Date.now();
 let challengeSnapshot = null;
+let challengeSnapshotPanels = null;
 
 // Panel unlock tracking
 const panelsUnlocked = new Set(['t1', 'click']);
@@ -77,6 +80,7 @@ function saveGame() {
     conquered: [...state.conquered],
     worldUpgrades: [...state.worldUpgrades],
     achievements: [...state.achievements],
+    insightMilestones: [...(state.insightMilestones || [])],
     questsCompleted: [...state.questsCompleted],
     treeNodes: [...state.treeNodes],
     unlockedPanels: [...panelsUnlocked],
@@ -101,6 +105,7 @@ function loadGame() {
     state.conquered = padArray(state.conquered, TERRITORIES.length, false);
     state.worldUpgrades = padArray(state.worldUpgrades, WORLD_UPGRADES.length, false);
     state.achievements = padArray(state.achievements, ACHIEVEMENTS.length, false);
+    state.insightMilestones = padArray(state.insightMilestones || [], INSIGHT_MILESTONES.length, false);
     state.questsCompleted = padArray(state.questsCompleted, QUESTS.length, false);
     state.treeNodes = padArray(state.treeNodes, TREE_NODES_DEF.length, false);
 
@@ -160,6 +165,10 @@ function producerMaxAffordable(p) {
   return count;
 }
 
+function insightMultiplier() {
+  return Math.pow(1 + state.insights, 1.5);
+}
+
 function applyQuestRestriction(p) {
   if (!state.inChallenge) return 1;
   const id = state.challengeId;
@@ -176,12 +185,9 @@ function producerEffectiveRate(p) {
 
   // Tree node effects
   if (state.treeNodes[0]) mult *= 1.5;                             // Silver Cert: all ×1.5
-  if (state.treeNodes[2] && p.tier === 2) mult *= 2;              // Platinum Partner: T2 ×2
-  if (state.treeNodes[3] && p.tier === 1) mult *= 3;              // Automation Expert: T1 ×3
-  if (state.treeNodes[4]) mult *= 2;                              // Enterprise License: all ×2
-  if (state.treeNodes[5]) mult *= 2;                              // AI Automation: all ×2
-  if (state.treeNodes[7] && p.tier === 2) mult *= 5;             // Market Leader: T2 ×5
-  if (state.treeNodes[8]) mult *= 10;                             // Data Empire: all ×10
+  // New tree node effects (spine + branches)
+  if (state.treeNodes[0]) mult *= 1.5;                             // Silver Cert: all ×1.5
+  if (state.treeNodes[8]) mult *= 10;                              // Data Empire: all ×10
 
   // World upgrade effects (only DP-type boosts affect producers)
   for (const wu of WORLD_UPGRADES) {
@@ -219,6 +225,27 @@ function producerEffectiveRate(p) {
     applyEffectToProducer(u.effect, p.id, (m) => { mult *= m; });
   }
 
+  // Insight milestone effects (doubled by T2 Accelerator node 7)
+  if (state.insightMilestones) {
+    const msBoost = state.treeNodes[7] ? 2 : 1;
+    for (let i = 0; i < INSIGHT_MILESTONES.length; i++) {
+      if (!state.insightMilestones[i]) continue;
+      const eff = INSIGHT_MILESTONES[i].effect;
+      if (eff.type === 'combo') {
+        for (const e of eff.effects) applyEffectToProducer(e, p.id, (m) => { mult *= Math.pow(m, msBoost); });
+      } else {
+        applyEffectToProducer(eff, p.id, (m) => { mult *= Math.pow(m, msBoost); });
+      }
+    }
+  }
+
+  // Softcap: diminishing returns on extreme multipliers
+  const scFactor = state.treeNodes[5] ? 100 : 1; // Softcap Breaker node
+  const sc1 = 1e6 * scFactor;
+  const sc2 = 1e12 * scFactor;
+  if (mult > sc1) mult = sc1 * Math.pow(mult / sc1, 0.5);
+  if (mult > sc2) mult = sc2 * Math.pow(mult / sc2, 0.3);
+
   return p.baseProduction * state.owned[p.id] * mult;
 }
 
@@ -247,8 +274,7 @@ function calcTotalProduction(resource) {
 
 function clickPower() {
   let power = 1;
-  if (state.treeNodes[1]) power *= 5;            // Click Mastery ×5
-  if (state.treeNodes[5]) power *= 2;            // AI Automation click ×2
+  if (state.treeNodes[2]) { power *= 5; }         // Turbo Click: click ×5
   if (state.questsCompleted[1]) power *= 3;      // Analyst Only reward ×3
   // Territory conquest click boosts
   for (const t of TERRITORIES) {
@@ -264,7 +290,19 @@ function clickPower() {
     if (!state.achievements[i]) continue;
     gatherClickMultiplier(ACHIEVEMENTS[i].effect, (m) => { power *= m; });
   }
-  power *= (1 + state.insights); // Insights multiplier
+  // Insight milestone click effects
+  if (state.insightMilestones) {
+    for (let i = 0; i < INSIGHT_MILESTONES.length; i++) {
+      if (!state.insightMilestones[i]) continue;
+      const eff = INSIGHT_MILESTONES[i].effect;
+      if (eff.type === 'combo') {
+        for (const e of eff.effects) gatherClickMultiplier(e, (m) => { power *= m; });
+      } else {
+        gatherClickMultiplier(eff, (m) => { power *= m; });
+      }
+    }
+  }
+  power *= insightMultiplier(); // Insights multiplier
   // Click = % of production upgrades
   let pctBonus = 0;
   for (const u of UPGRADES) {
@@ -274,11 +312,11 @@ function clickPower() {
     }
   }
   if (pctBonus > 0) {
-    const dpRate = calcTotalProduction('dataPoints') * (1 + state.insights);
+    const dpRate = calcTotalProduction('dataPoints') * insightMultiplier();
     power += dpRate * (pctBonus / 100);
   }
   // 150-tier achievements: add producer production to click
-  const insightsMult = 1 + state.insights;
+  const insightsMult = insightMultiplier();
   for (const a of ACHIEVEMENTS) {
     if (!state.achievements[a.id]) continue;
     if (a.effect && a.effect.type === 'clickPercentOfProducerProduction') {
@@ -296,7 +334,20 @@ function gatherClickMultiplier(effect, cb) {
 }
 
 function calcRPGain() {
-  return Math.floor(Math.pow(state.lifetimeInsights / 100, 0.6) * 5);
+  // Legacy — kept for compatibility, returns 0. Use canPrestige() instead.
+  return 0;
+}
+
+function canPrestige() {
+  const n = state.prestigeCount;
+  const dpReq = 1e10 * Math.pow(100, n);
+  const insReq = 0.1 * Math.pow(10, n);
+  return state.lifetimeDP >= dpReq && state.lifetimeInsights >= insReq;
+}
+
+function getPrestigeRequirements() {
+  const n = state.prestigeCount;
+  return { dpReq: 1e10 * Math.pow(100, n), insReq: 0.1 * Math.pow(10, n) };
 }
 
 function calcContractsRate() {
@@ -307,7 +358,7 @@ function calcContractsRate() {
   for (const wu of WORLD_UPGRADES) {
     if (state.worldUpgrades[wu.id] && wu.type === 'contracts') rate *= wu.mult;
   }
-  if (state.treeNodes[6]) rate *= 3; // Global Expansion: contracts ×3
+  if (state.treeNodes[4]) rate *= 5; // Contract Engine node
   // Territory contracts boosts
   for (const t of TERRITORIES) {
     if (state.conquered[t.idx] && t.boost && t.boost.type === 'contractsMultiplier') {
@@ -358,7 +409,7 @@ function tick() {
   state.tickCount++;
 
   // Tier 1: produce Data Points (multiplied by Insights)
-  const insightsMult = 1 + state.insights;
+  const insightsMult = insightMultiplier();
   for (const p of PRODUCERS) {
     if (p.tier !== 1) continue;
     if (state.owned[p.id] === 0) continue;
@@ -368,13 +419,17 @@ function tick() {
   }
 
   // Tier 2: produce Insights (passive, no consumption)
+  const insightGainMult = state.treeNodes[3] ? 3 : 1; // Insight Boost node
   for (const p of PRODUCERS) {
     if (p.tier !== 2) continue;
     if (state.owned[p.id] === 0) continue;
-    const produced = producerEffectiveRate(p) * DT;
+    const produced = producerEffectiveRate(p) * DT * insightGainMult;
     state.insights += produced;
     state.lifetimeInsights += produced;
   }
+
+  // Check insight milestones
+  checkInsightMilestones();
 
   // Contracts
   const contractsEarned = calcContractsRate() * DT;
@@ -397,10 +452,12 @@ function tick() {
     drawSparkline();
   }
 
-  // Autoclicker (if unlocked via prestige)
-  if (state.autoClickerEnabled) {
+  // Autoclicker (via prestige tree node 1)
+  if (state.treeNodes[1]) {
     const power = clickPower();
-    const autoDP = power * state.autoClickerRate * DT;
+    let rate = 1; // 1 click/s base
+    if (state.treeNodes[2]) rate *= 10; // Turbo Click: ×10
+    const autoDP = power * rate * DT;
     state.dataPoints += autoDP;
     state.lifetimeDP += autoDP;
   }
@@ -521,13 +578,13 @@ function buyTreeNode(id) {
 // ═══ PRESTIGE ═══
 
 function doPrestige() {
-  const rp = calcRPGain();
-  if (rp < 5) return;
-  state.reputationPoints += rp;
-  addLog(`Fiscal Year Reset! Gained ${rp} Reputation Points.`, 'pres');
-  showToast(`Year closed. +${rp} RP earned.`, 'pres');
+  if (!canPrestige()) return;
   state.prestigeCount++;
+  state.prestigeNodes = (state.prestigeNodes || 0) + 1;
+  addLog(`Fiscal Year Reset! Earned node point #${state.prestigeNodes}.`, 'pres');
+  showToast(`Year closed. +1 node point earned.`, 'pres');
 
+  // Reset everything except prestige progress and quests
   state.dataPoints = 0;
   state.insights = 0;
   state.contracts = 0;
@@ -539,17 +596,28 @@ function doPrestige() {
   state.upgradeVisible = new Array(UPGRADES.length).fill(false);
   state.conquered = new Array(TERRITORIES.length).fill(false);
   state.worldUpgrades = new Array(WORLD_UPGRADES.length).fill(false);
+  state.achievements = new Array(ACHIEVEMENTS.length).fill(false);
+  state.insightMilestones = new Array(INSIGHT_MILESTONES ? INSIGHT_MILESTONES.length : 0).fill(false);
   state.inChallenge = false;
   state.challengeId = -1;
   state.goalMet = false;
   challengeSnapshot = null;
   sparklineData = [];
+  totalClickDP = 0;
+
+  // Deactivate all tree nodes — player re-picks on prestige screen
+  state.treeNodes = new Array(TREE_NODES_DEF.length).fill(false);
+
+  // First prestige: auto-activate node 0
+  if (state.prestigeNodes === 1) {
+    state.treeNodes[0] = true;
+  }
 
   // Re-lock panels except t1, click, prestige
   panelsUnlocked.clear();
   panelsUnlocked.add('t1');
   panelsUnlocked.add('click');
-  panelsUnlocked.add('prestige'); // keep prestige unlocked post-reset
+  panelsUnlocked.add('prestige');
 
   saveGame();
   buildDashboard();
@@ -562,31 +630,38 @@ function enterChallenge(id) {
   if (state.questsCompleted[id]) return;
   if (id > 0 && !state.questsCompleted[id - 1]) return;
 
+  // Snapshot EVERYTHING for restore on exit/claim
   challengeSnapshot = JSON.parse(JSON.stringify(state));
+  challengeSnapshotPanels = [...panelsUnlocked];
 
-  // Soft-reset: keep RP, prestige, tree, world, quests
-  const keepRP       = state.reputationPoints;
-  const keepPrestige = state.prestigeCount;
-  const keepTree     = [...state.treeNodes];
-  const keepWorld    = [...state.worldUpgrades];
+  // Full fresh reset — like a brand new game
   const keepQuests   = [...state.questsCompleted];
+  const keepPrestige = state.prestigeCount;
+  const keepNodes    = state.prestigeNodes || 0;
 
   state = defaultState();
-  state.reputationPoints = keepRP;
-  state.prestigeCount    = keepPrestige;
-  state.treeNodes        = keepTree;
-  state.worldUpgrades    = keepWorld;
   state.questsCompleted  = keepQuests;
+  state.prestigeCount    = keepPrestige;
+  state.prestigeNodes    = keepNodes;
+  // No tree nodes active, no achievements, no upgrades, no territories
   state.inChallenge      = true;
   state.challengeId      = id;
   state.goalMet          = false;
 
   sparklineData = [];
+  activityLog = [];
   starvationFlags = new Array(PRODUCERS.length).fill(false);
+  totalClickDP = 0;
+
+  // Lock all panels except T1, Click, Quests
+  panelsUnlocked.clear();
+  panelsUnlocked.add('t1');
+  panelsUnlocked.add('click');
+  panelsUnlocked.add('quests');
 
   addLog(`Quest entered: ${QUESTS[id].name}`, 'mile');
   showToast(`Challenge started: ${QUESTS[id].name}`, 'mile');
-  renderQuestsPanel();
+  buildDashboard();
 }
 
 function exitChallenge() {
@@ -594,12 +669,16 @@ function exitChallenge() {
   const id = state.challengeId;
   state = JSON.parse(JSON.stringify(challengeSnapshot));
   challengeSnapshot = null;
+  if (challengeSnapshotPanels) {
+    panelsUnlocked.clear();
+    for (const k of challengeSnapshotPanels) panelsUnlocked.add(k);
+    challengeSnapshotPanels = null;
+  }
   sparklineData = [];
   starvationFlags = new Array(PRODUCERS.length).fill(false);
   addLog(`Quest exited: ${QUESTS[id].name} (no reward)`, 'info');
   showToast('Challenge exited. No reward.', 'info');
-  renderQuestsPanel();
-  renderKPI();
+  buildDashboard();
 }
 
 function claimQuest() {
@@ -607,6 +686,11 @@ function claimQuest() {
   const id = state.challengeId;
   state = JSON.parse(JSON.stringify(challengeSnapshot));
   challengeSnapshot = null;
+  if (challengeSnapshotPanels) {
+    panelsUnlocked.clear();
+    for (const k of challengeSnapshotPanels) panelsUnlocked.add(k);
+    challengeSnapshotPanels = null;
+  }
   state.questsCompleted[id] = true;
   state.inChallenge = false;
   state.challengeId = -1;
@@ -634,14 +718,13 @@ function checkQuestGoal() {
 function checkPanelUnlocks() {
   for (const c of UNLOCK_ORDER) {
     if (panelsUnlocked.has(c.key)) continue;
-    // Auto-unlock (no cost): unlock when ready
-    if (!c.cost && c.ready()) {
+    // Auto-unlock (cost === null): unlock when ready. cost === 0 still requires click.
+    if (c.cost === null && c.ready()) {
       panelsUnlocked.add(c.key);
       unlockPanelsByKey(c.key);
       updateLockedPanelVisibility();
       renderKPI();
     }
-    break; // Only process the next unlock in order
   }
   updateLockedPanelVisibility();
   updateLockedProgress();
@@ -692,6 +775,21 @@ function checkAchievements() {
       state.achievements[i] = true;
       addLog(`Achievement: ${ACHIEVEMENTS[i].name} — ${ACHIEVEMENTS[i].reward}`, 'mile');
       showToast(`Achievement: ${ACHIEVEMENTS[i].name}!`, 'mile');
+    }
+  }
+}
+
+// ═══ INSIGHT MILESTONE CHECKS ═══
+
+function checkInsightMilestones() {
+  if (typeof INSIGHT_MILESTONES === 'undefined') return;
+  if (!state.insightMilestones) state.insightMilestones = new Array(INSIGHT_MILESTONES.length).fill(false);
+  for (let i = 0; i < INSIGHT_MILESTONES.length; i++) {
+    if (state.insightMilestones[i]) continue;
+    if (state.insights >= INSIGHT_MILESTONES[i].threshold) {
+      state.insightMilestones[i] = true;
+      addLog(`Insight Milestone: ${INSIGHT_MILESTONES[i].reward}`, 'mile');
+      showToast(`Insight: ${INSIGHT_MILESTONES[i].reward}`, 'mile');
     }
   }
 }
