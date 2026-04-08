@@ -58,7 +58,6 @@ function defaultState() {
 }
 
 let state = defaultState();
-let sparklineData = [];
 let activityLog = [];
 let starvationFlags = new Array(PRODUCERS.length).fill(false);
 let totalClickDP = 0;
@@ -446,12 +445,6 @@ function tick() {
 
   if (state.inChallenge) checkQuestGoal();
 
-  if (state.tickCount % SPARKLINE_INTERVAL_TICKS === 0) {
-    sparklineData.push(state.dataPoints);
-    if (sparklineData.length > SPARKLINE_MAX) sparklineData.shift();
-    drawSparkline();
-  }
-
   // Autoclicker (via prestige tree node 1)
   if (state.treeNodes[1]) {
     const power = clickPower();
@@ -602,7 +595,6 @@ function doPrestige() {
   state.challengeId = -1;
   state.goalMet = false;
   challengeSnapshot = null;
-  sparklineData = [];
   totalClickDP = 0;
 
   // Deactivate all tree nodes — player re-picks on prestige screen
@@ -648,7 +640,6 @@ function enterChallenge(id) {
   state.challengeId      = id;
   state.goalMet          = false;
 
-  sparklineData = [];
   activityLog = [];
   starvationFlags = new Array(PRODUCERS.length).fill(false);
   totalClickDP = 0;
@@ -674,7 +665,6 @@ function exitChallenge() {
     for (const k of challengeSnapshotPanels) panelsUnlocked.add(k);
     challengeSnapshotPanels = null;
   }
-  sparklineData = [];
   starvationFlags = new Array(PRODUCERS.length).fill(false);
   addLog(`Quest exited: ${QUESTS[id].name} (no reward)`, 'info');
   showToast('Challenge exited. No reward.', 'info');
@@ -695,7 +685,6 @@ function claimQuest() {
   state.inChallenge = false;
   state.challengeId = -1;
   state.goalMet = false;
-  sparklineData = [];
   starvationFlags = new Array(PRODUCERS.length).fill(false);
   addLog(`Quest complete: ${QUESTS[id].name}! Reward: ${QUESTS[id].reward}`, 'mile');
   showToast(`Quest ${id + 1} complete! ${QUESTS[id].reward}`, 'mile');
@@ -868,41 +857,6 @@ function fmtDec(n) {
 
 function resourceLabel(r) {
   return { dataPoints: 'DP', insights: 'Insights', contracts: 'Contracts' }[r] || r;
-}
-
-// ═══ SPARKLINE ═══
-
-function drawSparkline() {
-  const canvas = document.getElementById('sparkline');
-  if (!canvas || sparklineData.length < 2) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-  const minV = Math.min(...sparklineData), maxV = Math.max(...sparklineData);
-  const range = maxV - minV || 1;
-  const pts = sparklineData.map((v, i) => ({
-    x: (i / (sparklineData.length - 1)) * W,
-    y: H - ((v - minV) / range) * (H - 6) - 3,
-  }));
-  const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0, 'rgba(63,185,80,0.35)');
-  grad.addColorStop(1, 'rgba(63,185,80,0)');
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-  ctx.fillStyle = grad; ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-  ctx.strokeStyle = '#3fb950'; ctx.lineWidth = 1.5; ctx.stroke();
-}
-
-function resizeSparkline() {
-  const canvas = document.getElementById('sparkline');
-  if (!canvas) return;
-  canvas.width = canvas.offsetWidth || 300;
-  drawSparkline();
 }
 
 // ═══ ACTIVITY LOG ═══

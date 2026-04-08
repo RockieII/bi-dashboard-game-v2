@@ -30,7 +30,8 @@ function renderKPI() {
 
   setText('kpi-contracts-value', fmt(state.contracts));
   setText('kpi-contracts-rate', `${fmtDec(calcContractsRate())}/s`);
-  setText('kpi-ins-value', `×${(1 + state.insights).toFixed(3)}`);
+  const insMult = 1 + state.insights;
+  setText('kpi-ins-value', '×' + (insMult >= 1000 ? fmt(insMult) : insMult.toFixed(3)));
   setText('kpi-ins-rate', `+${fmtDec(calcTotalProduction('insights'))}/s`);
   const questsDone = state.questsCompleted.filter(Boolean).length;
   setText('kpi-quests-value', `${questsDone}/${QUESTS.length}`);
@@ -440,13 +441,6 @@ function buildClickPanel() {
         <div id="click-value">0</div>
         <div id="click-rate">0 DP/s · Click: +1</div>
       </div>
-      <div class="panel-sub" id="sparkline-wrap">
-        <div class="sub-header">
-          <span id="sparkline-title" class="section-divider">Live Feed</span>
-          <button class="filter-btn" id="sparkline-toggle">▼</button>
-        </div>
-        <canvas id="sparkline"></canvas>
-      </div>
       <div class="panel-sub" id="click-upg-sub" style="display:none">
         <div class="sub-header">
           <span class="section-divider">Click Upgrades</span>
@@ -459,17 +453,6 @@ function buildClickPanel() {
   document.getElementById('click-target').addEventListener('click', handleClick);
   buildUpgradePillsInto('click-upg-list', clickUpgradeGroups);
   document.getElementById('click-filter').addEventListener('click', () => cycleUpgradeFilter('click-upg-list', 'click-filter'));
-  document.getElementById('sparkline-toggle').addEventListener('click', toggleSparkline);
-  resizeSparkline();
-  window.addEventListener('resize', resizeSparkline);
-}
-
-function toggleSparkline() {
-  const wrap = document.getElementById('sparkline-wrap');
-  const btn = document.getElementById('sparkline-toggle');
-  if (!wrap || !btn) return;
-  wrap.classList.toggle('collapsed');
-  btn.textContent = wrap.classList.contains('collapsed') ? '▲' : '▼';
 }
 
 function renderClickPanel() {
@@ -1219,7 +1202,6 @@ function closeSettings() {
 function wipeData() {
   localStorage.removeItem(SAVE_KEY);
   state = defaultState();
-  sparklineData = [];
   activityLog = [];
   starvationFlags = new Array(PRODUCERS.length).fill(false);
   panelsUnlocked.clear();

@@ -4,8 +4,6 @@ const TICK_MS = 250;
 const DT = TICK_MS / 1000;
 const SAVE_KEY = 'bi-dashboard-v2';
 const SETTINGS_KEY = 'bi-dashboard-settings';
-const SPARKLINE_MAX = 60;
-const SPARKLINE_INTERVAL_TICKS = 15;
 const AUTOSAVE_TICKS = 120;
 const MAX_OFFLINE_HOURS = 4;
 
