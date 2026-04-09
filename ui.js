@@ -5,7 +5,7 @@ let prevDPRate = 0;
 function renderKPI() {
   const dpRate = calcTotalProduction('dataPoints');
 
-  setText('kpi-dp-value', fmt(state.dataPoints));
+  setText('kpi-dp-value', fmtRaw(state.dataPoints));
   setText('kpi-dp-rate', `${fmtDec(dpRate)} DP/s`);
 
   const delta = dpRate - prevDPRate;
@@ -28,7 +28,7 @@ function renderKPI() {
     if (el) el.style.display = panelsUnlocked.has(k.key) ? '' : 'none';
   }
 
-  setText('kpi-contracts-value', fmt(state.contracts));
+  setText('kpi-contracts-value', fmtRaw(state.contracts));
   setText('kpi-contracts-rate', `${fmtDec(calcContractsRate())}/s`);
   const insMult = 1 + state.insights;
   setText('kpi-ins-value', '×' + (insMult >= 1000 ? fmt(insMult) : insMult.toFixed(3)));
@@ -39,7 +39,7 @@ function renderKPI() {
   setText('kpi-rp-sub', `${state.prestigeCount} reset${state.prestigeCount !== 1 ? 's' : ''}`);
 
   // Click area
-  setText('click-value', fmt(state.dataPoints));
+  setText('click-value', fmtRaw(state.dataPoints));
   setText('click-rate', `${fmtDec(dpRate)} DP/s · Click: +${fmt(clickPower())}`);
 }
 
@@ -304,7 +304,7 @@ function makeProducerRow(p) {
       <div class="buy-btns" id="buy-btns-${p.id}">
         <button class="buy-btn" data-id="${p.id}" data-n="1">×1</button>
         <button class="buy-btn" data-id="${p.id}" data-n="10">×10</button>
-        <button class="buy-btn" data-id="${p.id}" data-n="100">×100</button>
+        <button class="buy-btn" data-id="${p.id}" data-n="next" title="Buy until next milestone unlocks">→</button>
         <button class="buy-btn" data-id="${p.id}" data-n="max">MAX</button>
       </div>
     </div>
@@ -314,7 +314,13 @@ function makeProducerRow(p) {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const n = btn.dataset.n;
-      buyProducer(p.id, n === 'max' ? 'max' : parseInt(n));
+      if (n === 'max') {
+        buyProducer(p.id, 'max');
+      } else if (n === 'next') {
+        buyProducerToNextMilestone(p.id);
+      } else {
+        buyProducer(p.id, parseInt(n));
+      }
     });
   });
   return row;

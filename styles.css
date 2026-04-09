@@ -132,7 +132,13 @@ input, textarea { user-select: text; -webkit-user-select: text; }
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
   line-height: 1.2;
+  /* T17 easter egg: clip overflow so huge numbers bleed past the container */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
+
+.kpi-card { overflow: hidden; }
 
 .kpi-value.blue  { color: var(--blue); }
 .kpi-value.teal  { color: var(--teal); }
@@ -385,6 +391,10 @@ input, textarea { user-select: text; -webkit-user-select: text; }
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
+  /* T17 easter egg: centered, bleeds both ways and clips */
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: center;
 }
 
 #click-rate {

@@ -461,6 +461,11 @@ function tick() {
     state.lifetimeDP += autoDP;
   }
 
+  // Auto-Buyer (prestige tree node 6): buy cheapest affordable T1 every 5s
+  if (state.treeNodes[6] && state.tickCount % 20 === 0) {
+    autoBuyCheapestT1();
+  }
+
   if (state.tickCount % AUTOSAVE_TICKS === 0) saveGame();
 
   // Render
@@ -531,6 +536,28 @@ function buyProducer(id, amount) {
   checkUpgradeUnlocks();
 }
 
+// Buy producer until the next "owned" milestone unlocks (or until unaffordable).
+// Looks at all UPGRADES with unlock.type='owned' targeting this producer, picks
+// the smallest count > current owned, and buys (target - current) units.
+function buyProducerToNextMilestone(id) {
+  const p = PRODUCERS[id];
+  const current = state.owned[id];
+  let nextMilestone = Infinity;
+  for (const u of UPGRADES) {
+    if (u.unlock?.type !== 'owned' || u.unlock.producerId !== id) continue;
+    if (u.unlock.count > current && u.unlock.count < nextMilestone) {
+      nextMilestone = u.unlock.count;
+    }
+  }
+  if (nextMilestone === Infinity) {
+    // No further milestone — fall back to MAX
+    buyProducer(id, 'max');
+    return;
+  }
+  const want = nextMilestone - current;
+  buyProducer(id, want);
+}
+
 // ═══ BUY UPGRADE ═══
 
 function buyUpgrade(id) {
@@ -573,6 +600,21 @@ function buyTreeNode(id) {
   closeNodePopup();
   renderPrestigeTree();
   renderKPI();
+}
+
+// Auto-Buyer tick action: find cheapest affordable T1 producer and buy one.
+function autoBuyCheapestT1() {
+  let cheapest = null;
+  let cheapestCost = Infinity;
+  for (const p of PRODUCERS) {
+    if (p.tier !== 1) continue;
+    const cost = producerCost(p);
+    if (cost < cheapestCost && state.dataPoints >= cost) {
+      cheapest = p;
+      cheapestCost = cost;
+    }
+  }
+  if (cheapest) buyProducer(cheapest.id, 1);
 }
 
 // One-shot start bonuses for tree nodes that grant resources on activation.
@@ -888,6 +930,12 @@ function fmtLetters(n) {
 
 function fmtFull(n) {
   if (n >= 1e15) return fmtScientific(n);
+  return Math.floor(n).toLocaleString();
+}
+
+// T17 easter egg: always full-digit, never collapsed. Container overflow handles bleed.
+function fmtRaw(n) {
+  if (!isFinite(n) || isNaN(n)) return '0';
   return Math.floor(n).toLocaleString();
 }
 
