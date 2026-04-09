@@ -1007,6 +1007,9 @@ function applyUpgradeFilter(listId) {
   if (!container) return;
   const mode = upgradeFilters[listId] || 'all';
   container.querySelectorAll('.upg-pill').forEach(el => {
+    const id = parseInt(el.id.replace('upg-pill-', ''), 10);
+    const visible = state.upgradeVisible[id];
+    if (!visible) { el.style.display = 'none'; return; }
     const purchased = el.classList.contains('purchased');
     if (mode === 'all') el.style.display = '';
     else if (mode === 'bought') el.style.display = purchased ? '' : 'none';
