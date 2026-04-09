@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BI Dashboard v2 — Dev Snapshot Tool</title>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #e6edf3; padding: 24px; max-width: 800px; margin: 0 auto; }
+  h1 { color: #1f6feb; margin-bottom: 4px; }
+  .sub { color: #8b949e; margin-bottom: 24px; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  button { background: #161b22; border: 1px solid #30363d; color: #e6edf3; padding: 14px 16px; border-radius: 8px; cursor: pointer; font-size: 15px; text-align: left; transition: background 0.15s; }
+  button:hover { background: #1c2128; border-color: #1f6feb; }
+  button strong { display: block; color: #1f6feb; margin-bottom: 4px; font-size: 16px; }
+  button small { display: block; color: #8b949e; font-size: 12px; }
+  .danger { border-color: #f85149; }
+  .danger:hover { border-color: #f85149; background: #2d1417; }
+  .danger strong { color: #f85149; }
+  #status { padding: 12px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; min-height: 50px; font-family: monospace; font-size: 13px; white-space: pre-wrap; }
+  .ok { color: #3fb950; }
+  .err { color: #f85149; }
+  a.launch { display: inline-block; margin-top: 16px; color: #1f6feb; text-decoration: none; padding: 10px 14px; border: 1px solid #1f6feb; border-radius: 6px; }
+  a.launch:hover { background: #1f6feb20; }
+</style>
+</head>
+<body>
+
+<h1>BI Dashboard v2 — Snapshot Tool</h1>
+<div class="sub">Click a section start to overwrite the localStorage save with a canned state. Open <code>index.html</code> after to load it.</div>
+
+<div class="grid">
+  <button onclick="snapshot('t1')">
+    <strong>T1 Start</strong>
+    <small>Fresh game. Default state.</small>
+  </button>
+  <button onclick="snapshot('wm')">
+    <strong>WM Start</strong>
+    <small>~150K DP. T1 globals bought. WM panel unlocked.</small>
+  </button>
+  <button onclick="snapshot('t2')">
+    <strong>T2 Start</strong>
+    <small>All 6 territories conquered. Mastery unlocked. Free T2 click ready.</small>
+  </button>
+  <button onclick="snapshot('quest')">
+    <strong>Quest Start</strong>
+    <small>1e18 DP, T2 producers owned. Free quest entry ready.</small>
+  </button>
+  <button onclick="snapshot('prestige')">
+    <strong>Prestige Start</strong>
+    <small>All 4 quests done. Free prestige ready.</small>
+  </button>
+  <button class="danger" onclick="wipe()">
+    <strong>Wipe Save</strong>
+    <small>Clear localStorage entirely.</small>
+  </button>
+</div>
+
+<div id="status">Ready.</div>
+
+<a class="launch" href="index.html">Open game →</a>
+
+<script src="config.js"></script>
+<script>
+const SAVE_KEY_LOCAL = 'bi-dashboard-v2';
+
+function emptyState() {
+  return {
+    dataPoints: 0, insights: 0, reputationPoints: 0, prestigeCount: 0,
+    lifetimeDP: 0, lifetimeInsights: 0, contracts: 0, lifetimeContracts: 0,
+    owned: new Array(PRODUCERS.length).fill(0),
+    upgrades: new Array(UPGRADES.length).fill(false),
+    upgradeVisible: new Array(UPGRADES.length).fill(false),
+    conquered: new Array(TERRITORIES.length).fill(false),
+    worldUpgrades: new Array(WORLD_UPGRADES.length).fill(false),
+    questsCompleted: new Array(QUESTS.length).fill(false),
+    achievements: new Array(ACHIEVEMENTS.length).fill(false),
+    treeNodes: new Array(TREE_NODES_DEF.length).fill(false),
+    insightMilestones: new Array(INSIGHT_MILESTONES.length).fill(false),
+    prestigeNodes: 0,
+    inChallenge: false, challengeId: -1, goalMet: false,
+    totalClicks: 0, autoClickerEnabled: false, autoClickerRate: 1,
+    lastSaveTime: Date.now(), tickCount: 0,
+    unlockedPanels: ['t1', 'click'],
+  };
+}
+
+function snapshot(stage) {
+  const s = emptyState();
+
+  if (stage === 't1') {
+    // Default state, nothing to do
+  }
+
+  if (stage === 'wm' || stage === 't2' || stage === 'quest' || stage === 'prestige') {
+    // T1 buildout
+    s.owned[0] = 60; s.owned[1] = 50; s.owned[2] = 40; s.owned[3] = 25;
+    s.dataPoints = 200000; s.lifetimeDP = 500000;
+    // T1 producer + global upgrades that should be visible/affordable by WM era
+    for (const u of UPGRADES) {
+      if (u.phase === 't1' && (u.category === 'producer' || u.category === 'global')) {
+        if (u.unlock?.type === 'owned' && s.owned[u.unlock.producerId] >= u.unlock.count) s.upgrades[u.id] = true;
+        if (u.unlock?.type === 'lifetimeEarned' && s.lifetimeDP >= u.unlock.amount) s.upgrades[u.id] = true;
+      }
+      if (u.category === 'click' && u.phase === 't1' && u.unlock?.type === 'lifetimeEarned' && s.lifetimeDP >= u.unlock.amount) {
+        s.upgrades[u.id] = true;
+      }
+    }
+    s.unlockedPanels.push('wm');
+  }
+
+  if (stage === 't2' || stage === 'quest' || stage === 'prestige') {
+    // All 6 territories conquered
+    for (let i = 0; i < TERRITORIES.length; i++) s.conquered[i] = true;
+    s.unlockedPanels.push('mastery');
+    // Mastery upgrades unlock by territory + owned thresholds
+    s.contracts = 5000;
+    s.lifetimeContracts = 5000;
+    s.dataPoints = 1e10;
+    s.lifetimeDP = 1e10;
+  }
+
+  if (stage === 'quest' || stage === 'prestige') {
+    // T2 buildout
+    s.owned[4] = 20; s.owned[5] = 10; s.owned[6] = 5;
+    s.dataPoints = 1e18;
+    s.lifetimeDP = 5e18;
+    s.insights = 0.5;
+    s.lifetimeInsights = 0.5;
+    s.unlockedPanels.push('t2');
+    s.unlockedPanels.push('quests');
+    // T2 producer/global upgrades available
+    for (const u of UPGRADES) {
+      if (u.phase === 't2') {
+        if (u.unlock?.type === 'owned' && s.owned[u.unlock.producerId] >= u.unlock.count) s.upgrades[u.id] = true;
+        if (u.unlock?.type === 'lifetimeEarned' && s.lifetimeDP >= u.unlock.amount) s.upgrades[u.id] = true;
+      }
+    }
+  }
+
+  if (stage === 'prestige') {
+    // All quests done
+    for (let i = 0; i < QUESTS.length; i++) s.questsCompleted[i] = true;
+    s.unlockedPanels.push('prestige');
+    s.dataPoints = 1e12;
+    s.lifetimeDP = 1e20;
+    s.lifetimeInsights = 50;
+  }
+
+  // Dedupe panels
+  s.unlockedPanels = [...new Set(s.unlockedPanels)];
+
+  try {
+    localStorage.setItem(SAVE_KEY_LOCAL, JSON.stringify(s));
+    setStatus(`✓ Snapshot loaded: ${stage.toUpperCase()}\n\n  DP: ${s.dataPoints.toExponential(2)}\n  Insights: ${s.insights}\n  Contracts: ${s.contracts}\n  Owned: [${s.owned.join(',')}]\n  Conquered: ${s.conquered.filter(Boolean).length}/${TERRITORIES.length}\n  Quests done: ${s.questsCompleted.filter(Boolean).length}/${QUESTS.length}\n  Panels: ${s.unlockedPanels.join(', ')}\n\nOpen index.html to load.`, 'ok');
+  } catch (e) {
+    setStatus('✗ Failed: ' + e.message, 'err');
+  }
+}
+
+function wipe() {
+  if (!confirm('Wipe localStorage save?')) return;
+  localStorage.removeItem(SAVE_KEY_LOCAL);
+  setStatus('✓ Save wiped.', 'ok');
+}
+
+function setStatus(msg, cls) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = cls || '';
+}
+</script>
+</body>
+</html>
