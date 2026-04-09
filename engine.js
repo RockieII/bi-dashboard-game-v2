@@ -567,11 +567,28 @@ function buyTreeNode(id) {
   if (state.reputationPoints < node.cost) return;
   state.reputationPoints -= node.cost;
   state.treeNodes[id] = true;
+  applyTreeNodeStartBonus(id);
   addLog(`Skill unlocked: ${node.name}`, 'pres');
   showToast(`Permanent: ${node.name}`, 'pres');
   closeNodePopup();
   renderPrestigeTree();
   renderKPI();
+}
+
+// One-shot start bonuses for tree nodes that grant resources on activation.
+// Called when a node is activated (mid-run grant) AND on prestige reset for
+// auto-activated nodes. Safe to call multiple times: each invocation grants once.
+function applyTreeNodeStartBonus(id) {
+  if (id === 4) {
+    // Contract Engine: start with 100 contracts
+    state.contracts += 100;
+    state.lifetimeContracts += 100;
+  }
+  if (id === 8) {
+    // Data Empire: start with 1e6 DP
+    state.dataPoints += 1e6;
+    state.lifetimeDP += 1e6;
+  }
 }
 
 // ═══ PRESTIGE ═══
@@ -609,6 +626,7 @@ function doPrestige() {
   // First prestige: auto-activate node 0
   if (state.prestigeNodes === 1) {
     state.treeNodes[0] = true;
+    applyTreeNodeStartBonus(0);
   }
 
   // Re-lock panels except t1, click, prestige

@@ -19,11 +19,11 @@ const PRODUCERS = [
     baseCost: 12000,  costMult: 1.13, baseProduction: 20,   produces: 'dataPoints' },
   // Tier 2 — produce Insights/s (passive multiplier to DP, costs DP to buy)
   { id: 4, tier: 2, name: 'Power BI Dashboard', emoji: '📈', desc: 'Self-service analytics — passive DP multiplier.',
-    baseCost: 1e10,       costMult: 1.35, baseProduction: 0.001, produces: 'insights' },
+    baseCost: 1e10,       costMult: 1.35, baseProduction: 0.0002, produces: 'insights' },
   { id: 5, tier: 2, name: 'Data Warehouse',     emoji: '🏛️', desc: 'Centralised analytical store — stronger multiplier.',
-    baseCost: 1e13,       costMult: 1.35, baseProduction: 0.01,  produces: 'insights' },
+    baseCost: 1e13,       costMult: 1.35, baseProduction: 0.002,  produces: 'insights' },
   { id: 6, tier: 2, name: 'Data Lake',           emoji: '🌊', desc: 'Petabyte-scale storage — major multiplier.',
-    baseCost: 1e16,       costMult: 1.35, baseProduction: 0.05,  produces: 'insights' },
+    baseCost: 1e16,       costMult: 1.35, baseProduction: 0.01,  produces: 'insights' },
 ];
 
 // Each upgrade has: phase ('t1' | 't2' | 'mastery' | 'quest') controls visibility gate;
@@ -202,6 +202,99 @@ const UPGRADES = [
     phase: 't2', category: 'global',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 1e17 },
     cost: { resource: 'dataPoints', amount: 1e17 },       effect: { type: 'allMultiplier', multiplier: 2 } },
+  // ═══ T08: T1 LADDER EXPANSION (ids 42-49) ═══
+  // Fills the uniform 1/5/25/50/75 milestone ladder for all 4 T1 producers.
+  // Excel: had 1/5/25/50 → adding 75
+  { id: 42, name: 'Macro-First Workflow',  desc: 'Excel Analysts 1.5× production.',
+    phase: 't1', category: 'producer',
+    unlock: { type: 'owned', producerId: 0, count: 75 },
+    cost: { resource: 'dataPoints', amount: 50000 },     effect: { type: 'producerMultiplier', producerId: 0, multiplier: 1.5 } },
+  // SQL: had 1/5/25 → adding 50, 75
+  { id: 43, name: 'Index Whisperer',       desc: 'SQL Developers 3× production.',
+    phase: 't1', category: 'producer',
+    unlock: { type: 'owned', producerId: 1, count: 50 },
+    cost: { resource: 'dataPoints', amount: 120000 },    effect: { type: 'producerMultiplier', producerId: 1, multiplier: 3 } },
+  { id: 44, name: 'Execution Plan Mastery', desc: 'SQL Developers 1.5× production.',
+    phase: 't1', category: 'producer',
+    unlock: { type: 'owned', producerId: 1, count: 75 },
+    cost: { resource: 'dataPoints', amount: 500000 },    effect: { type: 'producerMultiplier', producerId: 1, multiplier: 1.5 } },
+  // ETL: had 1/5/25 → adding 50, 75
+  { id: 45, name: 'Pipeline Choreography', desc: 'ETL Pipelines 3× production.',
+    phase: 't1', category: 'producer',
+    unlock: { type: 'owned', producerId: 2, count: 50 },
+    cost: { resource: 'dataPoints', amount: 500000 },    effect: { type: 'producerMultiplier', producerId: 2, multiplier: 3 } },
+  { id: 46, name: 'Schema Drift Mastery',  desc: 'ETL Pipelines 1.5× production.',
+    phase: 't1', category: 'producer',
+    unlock: { type: 'owned', producerId: 2, count: 75 },
+    cost: { resource: 'dataPoints', amount: 2.5e6 },     effect: { type: 'producerMultiplier', producerId: 2, multiplier: 1.5 } },
+  // Catalog: had 5/25 → adding 1, 50, 75
+  { id: 47, name: 'Tagging Discipline',    desc: 'Data Catalogs 2× production.',
+    phase: 't1', category: 'producer',
+    unlock: { type: 'owned', producerId: 3, count: 1 },
+    cost: { resource: 'dataPoints', amount: 30000 },     effect: { type: 'producerMultiplier', producerId: 3, multiplier: 2 } },
+  { id: 48, name: 'Glossary Federation',   desc: 'Data Catalogs 3× production.',
+    phase: 't1', category: 'producer',
+    unlock: { type: 'owned', producerId: 3, count: 50 },
+    cost: { resource: 'dataPoints', amount: 5e6 },       effect: { type: 'producerMultiplier', producerId: 3, multiplier: 3 } },
+  { id: 49, name: 'Catalog Hegemony',      desc: 'Data Catalogs 1.5× production.',
+    phase: 't1', category: 'producer',
+    unlock: { type: 'owned', producerId: 3, count: 75 },
+    cost: { resource: 'dataPoints', amount: 25e6 },      effect: { type: 'producerMultiplier', producerId: 3, multiplier: 1.5 } },
+  // ═══ T08: T1 MASTERY TIER (ids 50-61) ═══
+  // Gated by 'mastery' phase (all 6 territories conquered).
+  // Per producer: ×2 at 100, ×3 at 125, ×5 at 150.
+  // Excel
+  { id: 50, name: 'Spreadsheet Sage',      desc: 'Excel Analysts 2× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 0, count: 100 },
+    cost: { resource: 'dataPoints', amount: 250000 },    effect: { type: 'producerMultiplier', producerId: 0, multiplier: 2 } },
+  { id: 51, name: 'Excel Demiurge',        desc: 'Excel Analysts 3× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 0, count: 125 },
+    cost: { resource: 'dataPoints', amount: 2e6 },       effect: { type: 'producerMultiplier', producerId: 0, multiplier: 3 } },
+  { id: 52, name: 'Spreadsheet Singularity', desc: 'Excel Analysts 5× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 0, count: 150 },
+    cost: { resource: 'dataPoints', amount: 20e6 },      effect: { type: 'producerMultiplier', producerId: 0, multiplier: 5 } },
+  // SQL
+  { id: 53, name: 'Query Sovereign',       desc: 'SQL Developers 2× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 1, count: 100 },
+    cost: { resource: 'dataPoints', amount: 2.5e6 },     effect: { type: 'producerMultiplier', producerId: 1, multiplier: 2 } },
+  { id: 54, name: 'Schema Demiurge',       desc: 'SQL Developers 3× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 1, count: 125 },
+    cost: { resource: 'dataPoints', amount: 20e6 },      effect: { type: 'producerMultiplier', producerId: 1, multiplier: 3 } },
+  { id: 55, name: 'Database Omniscience',  desc: 'SQL Developers 5× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 1, count: 150 },
+    cost: { resource: 'dataPoints', amount: 200e6 },     effect: { type: 'producerMultiplier', producerId: 1, multiplier: 5 } },
+  // ETL
+  { id: 56, name: 'Pipeline Sovereign',    desc: 'ETL Pipelines 2× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 2, count: 100 },
+    cost: { resource: 'dataPoints', amount: 12e6 },      effect: { type: 'producerMultiplier', producerId: 2, multiplier: 2 } },
+  { id: 57, name: 'Pipeline Demiurge',     desc: 'ETL Pipelines 3× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 2, count: 125 },
+    cost: { resource: 'dataPoints', amount: 100e6 },     effect: { type: 'producerMultiplier', producerId: 2, multiplier: 3 } },
+  { id: 58, name: 'Data Plumbing Singularity', desc: 'ETL Pipelines 5× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 2, count: 150 },
+    cost: { resource: 'dataPoints', amount: 1e9 },       effect: { type: 'producerMultiplier', producerId: 2, multiplier: 5 } },
+  // Catalog
+  { id: 59, name: 'Catalog Sovereign',     desc: 'Data Catalogs 2× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 3, count: 100 },
+    cost: { resource: 'dataPoints', amount: 120e6 },     effect: { type: 'producerMultiplier', producerId: 3, multiplier: 2 } },
+  { id: 60, name: 'Catalog Demiurge',      desc: 'Data Catalogs 3× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 3, count: 125 },
+    cost: { resource: 'dataPoints', amount: 1e9 },       effect: { type: 'producerMultiplier', producerId: 3, multiplier: 3 } },
+  { id: 61, name: 'Catalog Omniscience',   desc: 'Data Catalogs 5× production.',
+    phase: 'mastery', category: 'producer',
+    unlock: { type: 'owned', producerId: 3, count: 150 },
+    cost: { resource: 'dataPoints', amount: 10e9 },      effect: { type: 'producerMultiplier', producerId: 3, multiplier: 5 } },
 ];
 
 // Lookup maps — use these instead of UPGRADES[id] to decouple id from array index
@@ -340,9 +433,9 @@ const INSIGHT_MILESTONES = [
   { threshold: 0.1,   reward: 'Contracts rate ×2',       effect: { type: 'contractsMultiplier', multiplier: 2 } },
   { threshold: 0.25,  reward: 'All T2 ×2',               effect: { type: 'allTierMultiplier', tier: 2, multiplier: 2 } },
   { threshold: 0.5,   reward: 'All producers ×2',        effect: { type: 'allMultiplier', multiplier: 2 } },
-  { threshold: 1.0,   reward: 'All T1 ×3 + Click ×5',   effect: { type: 'combo', effects: [{ type: 'allTierMultiplier', tier: 1, multiplier: 3 }, { type: 'clickMultiplier', multiplier: 5 }] } },
-  { threshold: 2.0,   reward: 'All producers ×5',        effect: { type: 'allMultiplier', multiplier: 5 } },
-  { threshold: 5.0,   reward: 'All producers ×10',       effect: { type: 'allMultiplier', multiplier: 10 } },
+  { threshold: 1.5,   reward: 'All T1 ×3 + Click ×5',   effect: { type: 'combo', effects: [{ type: 'allTierMultiplier', tier: 1, multiplier: 3 }, { type: 'clickMultiplier', multiplier: 5 }] } },
+  { threshold: 4.0,   reward: 'All producers ×5',        effect: { type: 'allMultiplier', multiplier: 5 } },
+  { threshold: 15.0,  reward: 'All producers ×10',       effect: { type: 'allMultiplier', multiplier: 10 } },
 ];
 
 // ═══ PRESTIGE TREE ═══
