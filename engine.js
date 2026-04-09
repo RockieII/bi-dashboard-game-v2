@@ -112,6 +112,8 @@ function loadGame() {
     if (saved.unlockedPanels) {
       for (const key of saved.unlockedPanels) panelsUnlocked.add(key);
     }
+    // Backfill mastery unlock for saves predating the phase system
+    if (state.conquered.every(Boolean)) panelsUnlocked.add('mastery');
 
     const offlineSec = Math.min((Date.now() - (saved.lastSaveTime || Date.now())) / 1000, MAX_OFFLINE_HOURS * 3600);
     if (offlineSec > 10) {
@@ -217,10 +219,8 @@ function producerEffectiveRate(p) {
   // Per-producer upgrade multipliers
   for (const u of UPGRADES) {
     if (!state.upgrades[u.id]) continue;
-    if (skipT1Upgrades) {
-      const grp = UPGRADE_GROUPS.find(g => g.ids.includes(u.id));
-      if (grp && grp.id === 'grp-t1') continue;
-    }
+    // Quest "Insights Rush" restriction: skip all T1-phase upgrades
+    if (skipT1Upgrades && (u.phase === 't1' || u.phase === 'mastery')) continue;
     applyEffectToProducer(u.effect, p.id, (m) => { mult *= m; });
   }
 
@@ -386,6 +386,12 @@ function conquerTerritory(idx) {
     return;
   }
   state.conquered[idx] = true;
+  // Mastery phase unlock: all 6 territories conquered
+  if (state.conquered.every(Boolean) && !panelsUnlocked.has('mastery')) {
+    panelsUnlocked.add('mastery');
+    addLog('Mastery upgrades unlocked! Master your craft.', 'mile');
+    showToast('Mastery tier unlocked!', 'mile');
+  }
   // Apply territory boost
   if (t.boost) {
     if (t.boost.type === 'instantContracts') {
@@ -785,19 +791,37 @@ function checkInsightMilestones() {
 
 // ═══ UPGRADE UNLOCK CHECKS ═══
 
+// Map cost.resource -> lifetime field name for lifetimeEarned unlock checks
+const LIFETIME_FIELD = { dataPoints: 'lifetimeDP', insights: 'lifetimeInsights', contracts: 'lifetimeContracts' };
+
 function checkUpgradeUnlocks() {
   for (const u of UPGRADES) {
     const i = u.id;
-    if (state.upgradeVisible[i]) continue;
-    // Territory-gated upgrades: only visible after conquering the territory
-    if (u.unlock && u.unlock.type === 'territory') {
-      if (!state.conquered[u.unlock.territoryIdx]) continue;
+    let visible = true;
+
+    // Phase gate: 't1' is always on; others require panelsUnlocked membership
+    if (u.phase && u.phase !== 't1' && !panelsUnlocked.has(u.phase)) {
+      visible = false;
     }
-    const resource = u.cost.resource;
-    const threshold = u.cost.amount * 0.9;
-    if (state[resource] >= threshold) {
-      state.upgradeVisible[i] = true;
+
+    // Condition gate (all unlock types honored — no 90% cost threshold)
+    if (visible && u.unlock) {
+      switch (u.unlock.type) {
+        case 'owned':
+          if ((state.owned[u.unlock.producerId] || 0) < u.unlock.count) visible = false;
+          break;
+        case 'lifetimeEarned': {
+          const field = LIFETIME_FIELD[u.unlock.resource];
+          if (!field || (state[field] || 0) < u.unlock.amount) visible = false;
+          break;
+        }
+        case 'territory':
+          if (!state.conquered[u.unlock.territoryIdx]) visible = false;
+          break;
+      }
     }
+
+    state.upgradeVisible[i] = visible;
   }
 }
 

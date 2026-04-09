@@ -187,7 +187,7 @@ function buildT1Panel() {
   if (!el) return;
 
   const t1Producers = PRODUCERS.filter(p => p.tier === 1);
-  const t1UpgradeGroups = UPGRADE_GROUPS.filter(g => g.id === 'grp-t1');
+  const t1Upgrades = getUpgradesForPanel('t1');
 
   el.innerHTML = `
     <div class="panel-header">
@@ -216,7 +216,7 @@ function buildT1Panel() {
   }
 
   // Upgrade pills
-  buildUpgradePillsInto('t1-upg-list', t1UpgradeGroups);
+  buildUpgradePillsInto('t1-upg-list', t1Upgrades);
   document.getElementById('t1-filter').addEventListener('click', () => cycleUpgradeFilter('t1-upg-list', 't1-filter'));
 }
 
@@ -224,10 +224,11 @@ function renderT1Panel() {
   if (!document.getElementById('t1-prod-list')) return;
   const t1 = PRODUCERS.filter(p => p.tier === 1);
   for (const p of t1) updateProducerRow(p);
-  updateUpgradePills('t1-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-t1'));
+  const t1Upgrades = getUpgradesForPanel('t1');
+  updateUpgradePills('t1-upg-list', t1Upgrades);
   applyUpgradeFilter('t1-upg-list');
   // Show upgrades sub-container if any are visible
-  const t1UpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-t1').ids.some(i => state.upgradeVisible[i]);
+  const t1UpgVisible = t1Upgrades.some(u => state.upgradeVisible[u.id]);
   const upgSub = document.getElementById('t1-upg-sub');
   if (upgSub) upgSub.style.display = t1UpgVisible ? '' : 'none';
 }
@@ -263,7 +264,7 @@ function buildT2Panel() {
     t2List.appendChild(makeProducerRow(p));
   }
 
-  buildUpgradePillsInto('t2-upg-list', UPGRADE_GROUPS.filter(g => g.id === 'grp-t2'));
+  buildUpgradePillsInto('t2-upg-list', getUpgradesForPanel('t2'));
   document.getElementById('t2-filter').addEventListener('click', () => cycleUpgradeFilter('t2-upg-list', 't2-filter'));
 }
 
@@ -271,9 +272,10 @@ function renderT2Panel() {
   if (!document.getElementById('t2-prod-list')) return;
   const t2 = PRODUCERS.filter(p => p.tier === 2);
   for (const p of t2) updateProducerRow(p);
-  updateUpgradePills('t2-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-t2'));
+  const t2Upgrades = getUpgradesForPanel('t2');
+  updateUpgradePills('t2-upg-list', t2Upgrades);
   applyUpgradeFilter('t2-upg-list');
-  const anyUpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-t2').ids.some(i => state.upgradeVisible[i]);
+  const anyUpgVisible = t2Upgrades.some(u => state.upgradeVisible[u.id]);
   const upgSub = document.getElementById('t2-upg-sub');
   if (upgSub) upgSub.style.display = anyUpgVisible ? '' : 'none';
 }
@@ -364,50 +366,48 @@ function updateProducerRow(p) {
 
 // ═══ UPGRADE PILL HELPERS ═══
 
-function buildUpgradePillsInto(containerId, groups) {
+function buildUpgradePillsInto(containerId, upgrades) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
-  for (const grp of groups) {
-    const sortedIds = [...grp.ids].sort((a, b) => UPGRADE_MAP[a].cost.amount - UPGRADE_MAP[b].cost.amount);
-    for (const i of sortedIds) {
-      const u = UPGRADE_MAP[i];
-      const purchased = state.upgrades[i];
-      const resource = u.cost.resource;
-      const canAfford = !purchased && state[resource] >= u.cost.amount;
+  const sorted = [...upgrades].sort((a, b) => a.cost.amount - b.cost.amount);
+  for (const u of sorted) {
+    const i = u.id;
+    const purchased = state.upgrades[i];
+    const resource = u.cost.resource;
+    const canAfford = !purchased && state[resource] >= u.cost.amount;
+    const tagInfo = getUpgradeTagInfo(u);
 
-      const pill = document.createElement('div');
-      pill.className = `upg-pill${purchased ? ' purchased' : (!canAfford ? ' unaffordable' : '')}`;
-      pill.id = `upg-pill-${i}`;
-      pill.style.display = state.upgradeVisible[i] ? '' : 'none';
-      pill.innerHTML = `
-        <div class="upg-pill-info">
-          <div class="upg-pill-name">
-            <span class="upg-tag ${grp.css}">${grp.tag}</span>
-            ${u.name}
-          </div>
-          <div class="upg-pill-effect">${u.desc}</div>
+    const pill = document.createElement('div');
+    pill.className = `upg-pill${purchased ? ' purchased' : (!canAfford ? ' unaffordable' : '')}`;
+    pill.id = `upg-pill-${i}`;
+    pill.style.display = state.upgradeVisible[i] ? '' : 'none';
+    pill.innerHTML = `
+      <div class="upg-pill-info">
+        <div class="upg-pill-name">
+          <span class="upg-tag ${tagInfo.css}">${tagInfo.tag}</span>
+          ${u.name}
         </div>
-        <span class="upg-pill-cost ${purchased ? 'done' : (canAfford ? 'affordable' : 'cant-afford')}" id="upg-cost-${i}">
-          ${purchased ? '✓' : `${fmt(u.cost.amount)} ${resourceLabel(resource)}`}
-        </span>
-      `;
-      pill.addEventListener('click', () => buyUpgrade(i));
-      container.appendChild(pill);
-    }
+        <div class="upg-pill-effect">${u.desc}</div>
+      </div>
+      <span class="upg-pill-cost ${purchased ? 'done' : (canAfford ? 'affordable' : 'cant-afford')}" id="upg-cost-${i}">
+        ${purchased ? '✓' : `${fmt(u.cost.amount)} ${resourceLabel(resource)}`}
+      </span>
+    `;
+    pill.addEventListener('click', () => buyUpgrade(i));
+    container.appendChild(pill);
   }
 }
 
-function updateUpgradePills(containerId, grp) {
-  if (!grp) return;
-  for (const i of grp.ids) {
+function updateUpgradePills(containerId, upgrades) {
+  if (!upgrades) return;
+  for (const u of upgrades) {
+    const i = u.id;
     const pill = document.getElementById(`upg-pill-${i}`);
     if (!pill) continue;
     pill.style.display = state.upgradeVisible[i] ? '' : 'none';
     if (!state.upgradeVisible[i]) continue;
 
-    const u = UPGRADE_MAP[i];
-    if (!u) continue;
     const purchased = state.upgrades[i];
     const resource = u.cost.resource;
     const canAfford = !purchased && state[resource] >= u.cost.amount;
@@ -428,7 +428,7 @@ function updateUpgradePills(containerId, grp) {
 function buildClickPanel() {
   const el = document.getElementById('panel-click');
   if (!el) return;
-  const clickUpgradeGroups = UPGRADE_GROUPS.filter(g => g.id === 'grp-click');
+  const clickUpgrades = getUpgradesForPanel('click');
 
   el.innerHTML = `
     <div class="panel-header">
@@ -451,14 +451,15 @@ function buildClickPanel() {
     </div>
   `;
   document.getElementById('click-target').addEventListener('click', handleClick);
-  buildUpgradePillsInto('click-upg-list', clickUpgradeGroups);
+  buildUpgradePillsInto('click-upg-list', clickUpgrades);
   document.getElementById('click-filter').addEventListener('click', () => cycleUpgradeFilter('click-upg-list', 'click-filter'));
 }
 
 function renderClickPanel() {
-  updateUpgradePills('click-upg-list', UPGRADE_GROUPS.find(g => g.id === 'grp-click'));
+  const clickUpgrades = getUpgradesForPanel('click');
+  updateUpgradePills('click-upg-list', clickUpgrades);
   applyUpgradeFilter('click-upg-list');
-  const clkUpgVisible = UPGRADE_GROUPS.find(g => g.id === 'grp-click').ids.some(i => state.upgradeVisible[i]);
+  const clkUpgVisible = clickUpgrades.some(u => state.upgradeVisible[u.id]);
   const upgSub = document.getElementById('click-upg-sub');
   if (upgSub) upgSub.style.display = clkUpgVisible ? '' : 'none';
 }

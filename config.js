@@ -26,136 +26,180 @@ const PRODUCERS = [
     baseCost: 1e16,       costMult: 1.35, baseProduction: 0.05,  produces: 'insights' },
 ];
 
+// Each upgrade has: phase ('t1' | 't2' | 'mastery' | 'quest') controls visibility gate;
+// category ('producer' | 'click' | 'global' | 'contracts') controls which panel renders it.
 const UPGRADES = [
   { id: 0,  name: 'Pivot Tables',          desc: 'Excel Analysts 2× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 0, count: 1 },
     cost: { resource: 'dataPoints', amount: 25 },     effect: { type: 'producerMultiplier', producerId: 0, multiplier: 2 } },
   { id: 1,  name: 'VLOOKUP Mastery',       desc: 'Excel Analysts 2× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 0, count: 5 },
     cost: { resource: 'dataPoints', amount: 100 },    effect: { type: 'producerMultiplier', producerId: 0, multiplier: 2 } },
   { id: 2,  name: 'Power Query',           desc: 'Excel Analysts 2× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 0, count: 25 },
     cost: { resource: 'dataPoints', amount: 2500 },   effect: { type: 'producerMultiplier', producerId: 0, multiplier: 2 } },
   { id: 3,  name: 'Query Optimization',    desc: 'SQL Developers 2× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 1, count: 1 },
     cost: { resource: 'dataPoints', amount: 250 },    effect: { type: 'producerMultiplier', producerId: 1, multiplier: 2 } },
   { id: 4,  name: 'Stored Procedures',     desc: 'SQL Developers 2× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 1, count: 5 },
     cost: { resource: 'dataPoints', amount: 1200 },   effect: { type: 'producerMultiplier', producerId: 1, multiplier: 2 } },
   { id: 5,  name: 'Incremental Load',      desc: 'ETL Pipelines 2× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 2, count: 1 },
     cost: { resource: 'dataPoints', amount: 2500 },   effect: { type: 'producerMultiplier', producerId: 2, multiplier: 2 } },
   { id: 6,  name: 'CDC Streaming',         desc: 'ETL Pipelines 2× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 2, count: 5 },
     cost: { resource: 'dataPoints', amount: 15000 },  effect: { type: 'producerMultiplier', producerId: 2, multiplier: 2 } },
   { id: 7,  name: 'Data Governance',       desc: 'All Tier 1 producers 1.5× production.',
+    phase: 't1', category: 'global',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 300 },
     cost: { resource: 'dataPoints', amount: 500 },    effect: { type: 'allTierMultiplier', tier: 1, multiplier: 1.5 } },
   { id: 8,  name: 'Cloud Migration',       desc: 'All Tier 1 producers 2× production.',
+    phase: 't1', category: 'global',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 5000 },
     cost: { resource: 'dataPoints', amount: 4000 },   effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
   { id: 9,  name: 'Star Schema Design',    desc: 'Power BI Dashboards 2× production.',
+    phase: 't2', category: 'producer',
     unlock: { type: 'owned', producerId: 4, count: 1 },
     cost: { resource: 'dataPoints', amount: 5e10 },       effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
   { id: 10, name: 'Row-Level Security',    desc: 'Power BI Dashboards 2× production.',
+    phase: 't2', category: 'producer',
     unlock: { type: 'owned', producerId: 4, count: 5 },
     cost: { resource: 'dataPoints', amount: 5e11 },       effect: { type: 'producerMultiplier', producerId: 4, multiplier: 2 } },
   { id: 11, name: 'Columnar Storage',      desc: 'Data Warehouses 2× production.',
+    phase: 't2', category: 'producer',
     unlock: { type: 'owned', producerId: 5, count: 1 },
     cost: { resource: 'dataPoints', amount: 5e13 },       effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
   { id: 12, name: 'Partitioning Strategy', desc: 'Data Warehouses 2× production.',
+    phase: 't2', category: 'producer',
     unlock: { type: 'owned', producerId: 5, count: 5 },
     cost: { resource: 'dataPoints', amount: 5e14 },       effect: { type: 'producerMultiplier', producerId: 5, multiplier: 2 } },
   { id: 13, name: 'Delta Lake Format',     desc: 'Data Lakes 2× production.',
+    phase: 't2', category: 'producer',
     unlock: { type: 'owned', producerId: 6, count: 1 },
     cost: { resource: 'dataPoints', amount: 5e16 },       effect: { type: 'producerMultiplier', producerId: 6, multiplier: 2 } },
   // Click upgrades (ids 14-18)
   { id: 14, name: 'Touch Typing',          desc: 'Click power 2×.',
+    phase: 't1', category: 'click',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 10 },
     cost: { resource: 'dataPoints', amount: 30 },     effect: { type: 'clickMultiplier', multiplier: 2 } },
   { id: 15, name: 'Keyboard Shortcuts',    desc: 'Click power 2×.',
+    phase: 't1', category: 'click',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 300 },
     cost: { resource: 'dataPoints', amount: 500 },    effect: { type: 'clickMultiplier', multiplier: 2 } },
   { id: 16, name: 'Macro Recorder',        desc: 'Click power 3×.',
+    phase: 't1', category: 'click',
     unlock: { type: 'owned', producerId: 1, count: 5 },
     cost: { resource: 'dataPoints', amount: 5000 },   effect: { type: 'clickMultiplier', multiplier: 3 } },
   { id: 17, name: 'RPA Bot',               desc: 'Click power 5×.',
+    phase: 't1', category: 'click',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 25000 },
     cost: { resource: 'dataPoints', amount: 15000 },  effect: { type: 'clickMultiplier', multiplier: 5 } },
   { id: 18, name: 'One-Click Reports',     desc: 'Click power 4×.',
+    phase: 't2', category: 'click',
     unlock: { type: 'owned', producerId: 4, count: 5 },
     cost: { resource: 'dataPoints', amount: 30000 },  effect: { type: 'clickMultiplier', multiplier: 4 } },
-  // Click = 1% of production upgrades (ids 33-37, spread across game phases)
+  // Click = 1% of production upgrades (ids 33-37)
   { id: 33, name: 'Data Sampling',         desc: 'Click +1% of DP/s.',
+    phase: 't1', category: 'click',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 500 },
     cost: { resource: 'dataPoints', amount: 500 },        effect: { type: 'clickPercentOfProduction', percent: 1 } },
   { id: 34, name: 'Smart Clipboard',       desc: 'Click +1% of DP/s.',
+    phase: 't1', category: 'click',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 50000 },
     cost: { resource: 'dataPoints', amount: 50000 },      effect: { type: 'clickPercentOfProduction', percent: 1 } },
   { id: 35, name: 'Batch Processor',       desc: 'Click +1% of DP/s.',
+    phase: 't1', category: 'click',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 500000 },
     cost: { resource: 'dataPoints', amount: 500000 },     effect: { type: 'clickPercentOfProduction', percent: 1 } },
   { id: 36, name: 'Stream Tap',            desc: 'Click +1% of DP/s.',
+    phase: 't2', category: 'click',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 10000000 },
     cost: { resource: 'dataPoints', amount: 10000000 },   effect: { type: 'clickPercentOfProduction', percent: 1 } },
   { id: 37, name: 'Neural Harvester',      desc: 'Click +1% of DP/s.',
+    phase: 't2', category: 'click',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 500000000 },
     cost: { resource: 'dataPoints', amount: 500000000 },  effect: { type: 'clickPercentOfProduction', percent: 1 } },
   // Additional T1 upgrades (ids 19-25)
   { id: 19, name: 'VBA Macros',             desc: 'Excel Analysts 3× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 0, count: 50 },
     cost: { resource: 'dataPoints', amount: 12000 },  effect: { type: 'producerMultiplier', producerId: 0, multiplier: 3 } },
   { id: 20, name: 'Materialized Views',     desc: 'SQL Developers 3× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 1, count: 25 },
     cost: { resource: 'dataPoints', amount: 25000 },  effect: { type: 'producerMultiplier', producerId: 1, multiplier: 3 } },
   { id: 21, name: 'Parallel Processing',    desc: 'ETL Pipelines 3× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 2, count: 25 },
     cost: { resource: 'dataPoints', amount: 100000 }, effect: { type: 'producerMultiplier', producerId: 2, multiplier: 3 } },
   { id: 22, name: 'Metadata Indexing',      desc: 'Data Catalogs 2× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 3, count: 5 },
     cost: { resource: 'dataPoints', amount: 50000 },  effect: { type: 'producerMultiplier', producerId: 3, multiplier: 2 } },
   { id: 23, name: 'Data Lineage Tracking',  desc: 'Data Catalogs 2× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'owned', producerId: 3, count: 25 },
     cost: { resource: 'dataPoints', amount: 500000 }, effect: { type: 'producerMultiplier', producerId: 3, multiplier: 2 } },
   { id: 24, name: 'Data Mesh Architecture', desc: 'All Tier 1 producers 3× production.',
+    phase: 't1', category: 'global',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 50000 },
     cost: { resource: 'dataPoints', amount: 35000 },  effect: { type: 'allTierMultiplier', tier: 1, multiplier: 3 } },
   { id: 25, name: 'Lakehouse Unification',  desc: 'All Tier 1 producers 2× production.',
+    phase: 't1', category: 'global',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 250000 },
     cost: { resource: 'dataPoints', amount: 150000 }, effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
   // Asia-unlocked T1 upgrades (ids 38-41, visible only after conquering Asia)
   { id: 38, name: 'Neural Spreadsheets',   desc: 'Excel Analysts 5× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'territory', territoryIdx: 4 },
     cost: { resource: 'dataPoints', amount: 1e7 },   effect: { type: 'producerMultiplier', producerId: 0, multiplier: 5 } },
   { id: 39, name: 'Quantum Queries',       desc: 'SQL Developers 5× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'territory', territoryIdx: 4 },
     cost: { resource: 'dataPoints', amount: 5e7 },   effect: { type: 'producerMultiplier', producerId: 1, multiplier: 5 } },
   { id: 40, name: 'AI Orchestration',      desc: 'ETL Pipelines 5× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'territory', territoryIdx: 4 },
     cost: { resource: 'dataPoints', amount: 2e8 },   effect: { type: 'producerMultiplier', producerId: 2, multiplier: 5 } },
   { id: 41, name: 'Autonomous Cataloging', desc: 'Data Catalogs 5× production.',
+    phase: 't1', category: 'producer',
     unlock: { type: 'territory', territoryIdx: 4 },
     cost: { resource: 'dataPoints', amount: 1e9 },   effect: { type: 'producerMultiplier', producerId: 3, multiplier: 5 } },
   // Additional T2 upgrades (ids 26-32)
   { id: 26, name: 'Advanced DAX',          desc: 'Power BI Dashboards 3× production.',
+    phase: 't2', category: 'producer',
     unlock: { type: 'owned', producerId: 4, count: 15 },
     cost: { resource: 'dataPoints', amount: 1e12 },       effect: { type: 'producerMultiplier', producerId: 4, multiplier: 3 } },
   { id: 27, name: 'Snowflake Migration',   desc: 'Data Warehouses 3× production.',
+    phase: 't2', category: 'producer',
     unlock: { type: 'owned', producerId: 5, count: 10 },
     cost: { resource: 'dataPoints', amount: 1e15 },       effect: { type: 'producerMultiplier', producerId: 5, multiplier: 3 } },
   { id: 28, name: 'Lakehouse Architecture',desc: 'Data Lakes 3× production.',
+    phase: 't2', category: 'producer',
     unlock: { type: 'owned', producerId: 6, count: 5 },
     cost: { resource: 'dataPoints', amount: 1e18 },       effect: { type: 'producerMultiplier', producerId: 6, multiplier: 3 } },
   { id: 29, name: 'DP Accelerator',        desc: 'All T1 producers 2× production.',
+    phase: 't2', category: 'global',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 1e11 },
     cost: { resource: 'dataPoints', amount: 1e11 },       effect: { type: 'allTierMultiplier', tier: 1, multiplier: 2 } },
   { id: 30, name: 'Contract Optimizer',    desc: 'Contracts rate ×2.',
+    phase: 't2', category: 'contracts',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 5e11 },
     cost: { resource: 'dataPoints', amount: 5e11 },       effect: { type: 'contractsMultiplier', multiplier: 2 } },
   { id: 31, name: 'Insight Analytics',     desc: 'All T2 producers 2× production.',
+    phase: 't2', category: 'global',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 1e13 },
     cost: { resource: 'dataPoints', amount: 1e14 },       effect: { type: 'allTierMultiplier', tier: 2, multiplier: 2 } },
   { id: 32, name: 'Enterprise Data Fabric',desc: 'All producers 2× production.',
+    phase: 't2', category: 'global',
     unlock: { type: 'lifetimeEarned', resource: 'dataPoints', amount: 1e17 },
     cost: { resource: 'dataPoints', amount: 1e17 },       effect: { type: 'allMultiplier', multiplier: 2 } },
 ];
@@ -209,11 +253,34 @@ const ACHIEVEMENTS = [
   { id: 38, name: 'Catalog Overlord',      desc: 'Own 150 Data Catalogs',        check: () => state.owned[3] >= 150, reward: '+100% Catalog prod to click', effect: { type: 'clickPercentOfProducerProduction', producerId: 3 } },
 ];
 
-const UPGRADE_GROUPS = [
-  { id: 'grp-t1',    label: 'Tier 1',  tag: 'T1',    css: 'tag-tier1', ids: [0,1,2,3,4,5,6,7,8,19,20,21,22,23,24,25,38,39,40,41] },
-  { id: 'grp-t2',    label: 'Tier 2',  tag: 'T2',    css: 'tag-tier2', ids: [9,10,11,12,13,26,27,28,29,30,31,32] },
-  { id: 'grp-click', label: 'Click',   tag: 'Click', css: 'tag-click', ids: [14,15,16,17,18,33,34,35,36,37] },
-];
+// Phase + category replaces UPGRADE_GROUPS. Filter dynamically.
+// panel: 't1' | 't2' | 'click'
+function getUpgradesForPanel(panel) {
+  switch (panel) {
+    case 't1':
+      // T1 producer panel: t1 + mastery phase, producer + global categories
+      return UPGRADES.filter(u =>
+        (u.phase === 't1' || u.phase === 'mastery') &&
+        (u.category === 'producer' || u.category === 'global'));
+    case 't2':
+      // T2 panel: t2 phase, producer + global + contracts categories
+      return UPGRADES.filter(u =>
+        u.phase === 't2' &&
+        (u.category === 'producer' || u.category === 'global' || u.category === 'contracts'));
+    case 'click':
+      // Click panel: any phase, click category
+      return UPGRADES.filter(u => u.category === 'click');
+  }
+  return [];
+}
+
+// Visual tag for an upgrade pill (replaces UPGRADE_GROUPS tag/css fields)
+function getUpgradeTagInfo(u) {
+  if (u.category === 'click') return { tag: 'Click', css: 'tag-click' };
+  if (u.phase === 'mastery')  return { tag: 'M',     css: 'tag-tier3' };
+  if (u.phase === 't2')       return { tag: 'T2',    css: 'tag-tier2' };
+  return                            { tag: 'T1',    css: 'tag-tier1' };
+}
 
 const TERRITORIES = [
   { id: 'na', idx: 0, name: 'North America', emoji: '🌎', need: 40,  rate: 0.2, color: '#4a9eff',
